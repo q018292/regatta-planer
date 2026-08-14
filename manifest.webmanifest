@@ -1,7 +1,7 @@
 {
   "name": "Regatta-Routenplaner 24h",
   "short_name": "RegattaPlaner",
-  "description": "Regatta-Routenplaner mit Fahrtplan, GPS, Bojenkarte und Offline-Speicherung.",
+  "description": "Regatta-Routenplaner mit Regatta-Modus, GPS, Bojenkarte und Offline-Funktionen.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

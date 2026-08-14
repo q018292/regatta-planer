@@ -1,18 +1,19 @@
-# Regatta-Routenplaner 24h PWA
+Regatta-Routenplaner 24h PWA v14
 
-Diese Version enthält eine installierbare Progressive Web App.
+Diese PWA basiert auf regatta-routenplaner-webapp-v14-gps-buttons-fix.html.
 
-## Dateien
-- index.html: App
-- manifest.webmanifest: PWA-Manifest
-- sw.js: Service Worker für Offline-Cache
-- icons/: App-Icons
+Enthalten:
+- index.html
+- manifest.webmanifest
+- sw.js
+- icons/icon-192.png
+- icons/icon-512.png
 
-## Test
-Für Installation und GPS bitte über HTTPS oder localhost bereitstellen. Lokales Öffnen per file:// reicht in vielen mobilen Browsern nicht für PWA/GPS.
+Wichtig für Android-Test:
+1. ZIP entpacken.
+2. Alle Dateien auf einen HTTPS-fähigen Webserver hochladen.
+3. Auf Android in Chrome öffnen.
+4. Chrome-Menü öffnen und App installieren bzw. Zum Startbildschirm hinzufügen wählen.
 
-Beispiel lokal am PC im entpackten Ordner:
-python -m http.server 8000
-Dann im Browser öffnen: http://localhost:8000
-
-Auf dem Mobilgerät am besten über einen HTTPS-Webspace, OneDrive/SharePoint-Webhosting, GitHub Pages oder einen kleinen lokalen HTTPS-Server testen.
+Hinweis:
+GPS und Installation funktionieren auf mobilen Geräten typischerweise nicht zuverlässig, wenn die HTML-Datei direkt per file:// geöffnet wird.
