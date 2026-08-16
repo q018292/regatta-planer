@@ -1,4 +1,4 @@
-const CACHE_NAME = 'regatta-planer-v16-import-fix';
+const CACHE_NAME = 'regatta-planer-v16-1-0-title-fix';
 self.addEventListener('install', event => {
   self.skipWaiting();
 });

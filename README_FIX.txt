@@ -1,10 +1,12 @@
-Fix v16: Importierte Rakken werden strikt gerichtet behandelt.
+Fix v16.1.0 (2026-08-16)
 
-Geändert:
-- RouteID ist jetzt Start|Eind, nicht mehr alphabetisch/ungerichtet.
-- Vorschläge zeigen nur Routen aus der ersten Spalte zur zweiten Spalte.
-- Gegenrichtungen werden nicht mehr angeboten.
-- Alte lokale App-Stände werden mit neuer STATE-Version ignoriert.
-- sw.js leert alte Caches, damit die PWA nicht die alte Version aus dem Cache lädt.
+Basis: v16 Import-Richtung-Fix.
 
-Teste nach Deploy bitte mit hartem Refresh oder PWA neu öffnen.
+Geändert in dieser Version:
+- Eindeutige Versionsnummer mit Datum in Browser-Titel und App-Titelzeile.
+- Titelzeile zeigt kurze Neuigkeit zur Version.
+- Titelzeile blendet sich nach 8 Sekunden automatisch aus.
+- Button "Heute nicht mehr anzeigen" blendet die Titelzeile fuer den aktuellen Tag aus.
+- Service-Worker-Cache wurde auf v16.1.0 erhoeht.
+
+Der gerichtete Routen-Fix aus v16 bleibt unveraendert enthalten.
