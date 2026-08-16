@@ -1,0 +1,45 @@
+<!-- Änderungen für index.html -->
+<!-- initMap() ersetzen -->
+<script>
+function initMap(){
+  if(typeof L==='undefined'){if(gpsStatus)gpsStatus.value='Kartenbibliothek nicht geladen';return}
+  if(mapObj){setTimeout(()=>mapObj.invalidateSize(),100);return}
+  mapObj=L.map('map').setView([52.8,5.2],8);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:18,
+    attribution:'© OpenStreetMap'
+  }).addTo(mapObj);
+
+  L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{
+    maxZoom:18,
+    attribution:'© OpenSeaMap contributors',
+    opacity:1
+  }).addTo(mapObj);
+
+  buoyLayer=L.layerGroup().addTo(mapObj);
+  renderBuoyMap();
+}
+
+function renderBuoyMap(){
+  if(!buoyLayer)return;
+  buoyLayer.clearLayers();
+  let bounds=[];
+
+  buoys.filter(b=>Number.isFinite(b.lat)&&Number.isFinite(b.lon)).forEach(b=>{
+    const color=buoyColor(b.type);
+    const marker=L.circleMarker([b.lat,b.lon],{
+      radius:b.type==='Startboei'?7:5,
+      color,
+      weight:2,
+      fillColor:color,
+      fillOpacity:0.18
+    }).bindPopup(`<b>${esc(b.name)}</b><br>${esc(b.type)}${b.description?'<br>'+esc(b.description):''}`);
+
+    marker.addTo(buoyLayer);
+    bounds.push([b.lat,b.lon]);
+  });
+
+  if(bounds.length&&mapObj)mapObj.fitBounds(bounds,{padding:[20,20]});
+}
+</script>
