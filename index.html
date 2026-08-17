@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1F4E78">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="RegattaPlaner">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <title>RegattaPlaner PWA v28</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/main.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>RegattaPlaner <span>v28 PWA</span></h1>
+      <p>Touch-optimierte 24h-Regatta-App für GitHub Pages.</p>
+    </div>
+    <button id="themeToggle" class="ghost">Nacht</button>
+  </header>
+
+  <main id="views">
+    <section id="regatta" class="view active" data-title="Regatta">
+      <div class="hero-card">
+        <div><span>Restzeit</span><strong id="remainingTime">--:--</strong></div>
+        <div><span>Gesamt</span><strong id="totalNm">0.00 nm</strong></div>
+        <div><span>SOG • COG • ETA</span><strong id="sogCogEta">- kn • -° • --:--</strong></div>
+      </div>
+      <div class="card form-grid">
+        <label>Startzeit<input id="startTime" type="time" value="14:00"></label>
+        <label>Startboje<select id="startBuoy"></select></label>
+        <label>Regatta-Ende<input id="endTime" readonly></label>
+        <label>Status<input id="saveStatus" readonly value="Bereit"></label>
+      </div>
+      <div class="card">
+        <h2>Nächster Schlag</h2>
+        <div class="next-summary">
+          <label>Von<input id="fromBuoy" readonly></label>
+          <label>Nach<input id="nextBuoy" readonly></label>
+          <label>Ø Speed kn<input id="speedInput" type="number" min="0" step="0.1" inputmode="decimal" placeholder="z. B. 5.5"></label>
+        </div>
+        <div id="preview" class="preview">Bitte Boje und Geschwindigkeit wählen.</div>
+        <div id="nextCards" class="touch-card-list"></div>
+        <div class="quick-actions">
+          <button id="addLeg" class="primary" disabled>+ Schlag</button>
+          <button id="useGpsSpeed">GPS-Speed</button>
+          <button id="undoLeg">↩ Löschen</button>
+        </div>
+      </div>
+      <div class="card"><h2>Zuletzt geplant</h2><div id="recentLegs" class="leg-list"></div></div>
+    </section>
+
+    <section id="mapview" class="view" data-title="Karte">
+      <div id="map"></div>
+      <div class="map-fab">
+        <button id="centerGps">🎯</button>
+        <button id="startGps">▶ GPS</button>
+        <button id="stopGps">⏹</button>
+      </div>
+      <div class="card map-panel">
+        <label><input id="routeOverlayToggle" type="checkbox" checked> geplante Route</label>
+        <label><input id="gpsTrackToggle" type="checkbox" checked> GPS-Track</label>
+        <span id="gpsStatus">GPS nicht aktiv</span>
+      </div>
+    </section>
+
+    <section id="plan" class="view" data-title="Plan">
+      <div class="card"><div class="quick-actions"><button id="manualSave">Speichern</button><button id="exportJson">JSON Export</button><button id="resetApp" class="danger">Reset</button></div></div>
+      <div class="card table-wrap"><table id="planTable"><thead><tr><th>Nr.</th><th>Von</th><th>Nach</th><th>nm</th><th>Peilung</th><th>Speed</th><th>ETA</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    </section>
+
+    <section id="overview" class="view" data-title="Übersicht">
+      <div class="card"><h2>Alle Routen</h2><div class="table-wrap"><table id="overviewTable"><thead><tr><th>Route</th><th>nm</th><th>Max</th><th>Genutzt</th><th>Status</th></tr></thead><tbody></tbody></table></div></div>
+    </section>
+
+    <section id="import" class="view" data-title="Import">
+      <div class="card"><h2>Import & Backup</h2><p>Excel-Dateien importieren oder JSON-Backup laden.</p>
+        <label>Rakken-Datei<input id="rakkenFile" type="file" accept=".xlsx,.xls"></label>
+        <label>Bojen-Datei<input id="bojenFile" type="file" accept=".xlsx,.xls"></label>
+        <div class="quick-actions"><button id="importExcel">Excel importieren</button><button id="loadJsonBtn">JSON laden</button><button id="exportGpsCsv">GPS CSV</button><button id="exportGpsGpx">GPS GPX</button></div>
+        <input id="loadJson" type="file" accept=".json" hidden><div id="importMsg" class="notice">Bereit.</div>
+      </div>
+    </section>
+
+    <section id="settings" class="view" data-title="Setup">
+      <div class="card"><h2>GPS-Simulation</h2>
+        <label>Simulation<select id="simEnabled"><option value="off">Aus</option><option value="on">Ein</option></select></label>
+        <label>SOG kn<input id="simSog" type="number" step="0.1" value="5.5"></label>
+        <label>COG °<input id="simCog" type="number" step="1" min="0" max="359" value="90"></label>
+        <p class="notice" id="simStatus">Simulation aus</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Hauptnavigation">
+    <button class="active" data-view="regatta"><span>🏁</span>Regatta</button>
+    <button data-view="mapview"><span>🗺</span>Karte</button>
+    <button data-view="plan"><span>📋</span>Plan</button>
+    <button data-view="overview"><span>📊</span>Info</button>
+    <button data-view="import"><span>⇅</span>Import</button>
+    <button data-view="settings"><span>⚙</span>Setup</button>
+  </nav>
+</body>
+</html>
