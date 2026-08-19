@@ -1,0 +1,89 @@
+el.requestFullscreen();document.body.classList.add('fullscreen-active')}else{await document.exitFullscreen()}setTimeout(()=>{try{if(mapObj)mapObj.invalidateSize()}catch(e){}},250)}catch(e){alert('Vollbild wird von diesem Browser nicht unterstützt oder wurde blockiert.')}}
+(function(){const bind=()=>{restoreLogSettings();['logbookEnabled','gpsWakeLockEnabled','logMinDistance','logMinSeconds','logCourseChange','logHeartbeatMinutes','logWaypointRadius'].forEach(id=>{const el=document.getElementById(id);if(el)el.onchange=saveLogSettings});const update=document.getElementById('updateAppBtn');if(update)update.onclick=regattaForceAppUpdate;const full=document.getElementById('fullMap');if(full)full.onclick=toggleMapFullscreen;const gpx=document.getElementById('exportGpsGpx');if(gpx)gpx.onclick=exportGpsLogGpx;document.addEventListener('fullscreenchange',()=>{document.body.classList.toggle('fullscreen-active',!!document.fullscreenElement);setTimeout(()=>{try{if(mapObj)mapObj.invalidateSize()}catch(e){}},250)});applyLogbookEnabledState();updateLogbookView();setInterval(updateLogbookView,5000)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind()})();
+</script>
+
+
+<script>
+/* regatta-v28-0-10-helper */
+(function(){
+  function startFieldsComplete(){return ['sn1','sn2','sn3','sn4'].every(id=>{const el=document.getElementById(id);return el&&el.value.trim();});}
+  function autoCollapseStart(){const sec=document.getElementById('startSection'); if(sec&&startFieldsComplete()) sec.open=false;}
+  function numericOnly(el){ if(!el) return; el.addEventListener('input',()=>{el.value=el.value.replace(/\D/g,'').slice(0,3);}); el.addEventListener('change',()=>{autoCollapseStart(); try{persist()}catch(e){} }); }
+  const oldRenderOverview = typeof renderOverview==='function' ? renderOverview : null;
+  let overviewSort={key:'id',dir:1};
+  function statusBucket(g,max){ if(g>=max) return 'max'; if(g===0) return 'open'; return 'ok'; }
+  window.renderOverview=function(counts){
+    const table=document.getElementById('overviewTable'); if(!table||!table.querySelector('tbody')) return oldRenderOverview?oldRenderOverview(counts):undefined;
+    const filter=(document.getElementById('overviewStatusFilter')||{}).value||'all';
+    let rows=routes.map(r=>{const g=counts[r.id]||0, max=Number(r.max)||0, rest=max-g, bucket=statusBucket(g,max), status=bucket==='max'?'Max erreicht':bucket==='open'?'nicht gefahren':'OK'; return {id:r.id,start:r.start,end:r.end,distance:r.distance,max,used:g,rest,status,bucket};});
+    if(filter!=='all') rows=rows.filter(r=>r.bucket===filter);
+    rows.sort((a,b)=>{let ka=a[overviewSort.key], kb=b[overviewSort.key]; if(typeof ka==='string') return overviewSort.dir*ka.localeCompare(String(kb),'de'); return overviewSort.dir*((Number(ka)||0)-(Number(kb)||0));});
+    table.querySelector('tbody').innerHTML=rows.map(r=>`<tr class="${r.bucket==='max'?'overview-max-reached':r.rest===1?'overview-last':'overview-open'}"><td>${esc(r.id)}</td><td>${esc(r.start)}</td><td>${esc(r.end)}</td><td>${Number(r.distance).toFixed(1)}</td><td>${r.max}</td><td>${r.used}</td><td>${r.rest}</td><td class="${r.bucket==='max'?'bad':r.bucket==='ok'?'ok':''}">${r.status}</td></tr>`).join('');
+  };
+  function bind(){
+    ['sn1','sn2','sn3','sn4'].forEach(id=>numericOnly(document.getElementById(id))); autoCollapseStart();
+    const f=document.getElementById('overviewStatusFilter'); if(f)f.onchange=()=>{try{renderOverview(planState().counts)}catch(e){}};
+    document.querySelectorAll('#overviewTable th[data-sort]').forEach(th=>{th.onclick=()=>{const k=th.dataset.sort; overviewSort.dir=overviewSort.key===k?-overviewSort.dir:1; overviewSort.key=k; try{renderOverview(planState().counts)}catch(e){}}});
+    try{renderOverview(planState().counts)}catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('RegattaPlaner Service Worker aktiv - v24.4.1 (2026-08-16)'))
+      .catch(err => console.warn('Service Worker Registrierung fehlgeschlagen:', err));
+  });
+}
+</script>
+<section id="manual" class="view"><div class="card"><h2>Handbuch</h2>
+  <h3>Regatta</h3><p>In der Regatta-Ansicht planst du den nächsten Schlag. Du wählst die nächste Boje, gibst die Geschwindigkeit ein und übernimmst den Schlag in den Plan. Die kompakten Kennzahlen zeigen Strecke, GPS/SOG/COG und ETA.</p>
+  <h3>Karte</h3><p>Die Karte zeigt Bojen, geplante Routen, die GPS-Position und optional den GPS-Track. Mit „GPS zentrieren“ springt die Karte zur aktuellen Position, mit „Vollbild“ nutzt du die gesamte Anzeige.</p>
+  <h3>Plan</h3><p>Der Plan enthält alle übernommenen Schläge. Dort kannst du Zielbojen und Geschwindigkeit je Schlag bearbeiten, Spalten ein- und ausblenden und den Stand manuell speichern oder als JSON exportieren.</p>
+  <h3>Info</h3><p>Die Info-Ansicht zeigt alle verfügbaren Routen, die maximale Nutzung, gefahrene Anzahl und Restnutzung. Tabellenköpfe können sortieren, der Statusfilter grenzt die Anzeige ein. Startbojen und FINISH werden hervorgehoben.</p>
+  <h3>Logbuch</h3><p>Das Logbuch speichert GPS-Trackpunkte, Kursänderungen und Bojen-Rundungen. Standardmäßig ist das Logbuch ausgeschaltet. Beim Einschalten erscheint eine Sicherheitsabfrage. Export ist als CSV und GPX möglich.</p>
+  <h3>Import</h3><p>Im Import lädst du Rakken- und Bojen-Dateien im XLSX-Format. Alternativ kann der Copy-and-Paste-Fallback genutzt werden. JSON-Backup und Wiederherstellung sichern den Regatta-Stand.</p>
+  <h3>Einstellungen</h3><p>In den Einstellungen findest du Simulation, GPS-Bedienung, Logbuchverhalten und App-Aktualisierung. Die Bereiche sind einklappbar, damit die Ansicht auf dem Mobiltelefon übersichtlich bleibt.</p>
+  <h3>FINISH</h3><p>FINISH wird als besonderer letzter Schlag angeboten. FINISH kann nur einmal genutzt werden und beendet die Route logisch, auch wenn FINISH nicht in der Rakken-Tabelle enthalten ist.</p>
+  </div></section><script>
+/* regatta-v28-0-11-clean-runtime */
+(function(){
+  const LOG_KEY='regattaLogSettingsV2808';
+  function byId(id){return document.getElementById(id)}
+  function nrm(v){return (v==null?'':String(v)).trim()}
+  function finishUsed(){try{return (typeof planState==='function'?planState().states:[]).some(s=>nrm(s.nach)==='FINISH')}catch(e){return false}}
+  function finishBuoy(){try{return (buoys||[]).find(b=>b&&b.name==='FINISH')}catch(e){return null}}
+  function routeDistance(a,b){try{if(!a||!b)return 0; if(typeof haversineNm==='function'&&Number.isFinite(a.lat)&&Number.isFinite(a.lon)&&Number.isFinite(b.lat)&&Number.isFinite(b.lon))return haversineNm(a.lat,a.lon,b.lat,b.lon);return 0}catch(e){return 0}}
+  function ensureFinishRoute(fromName){try{const f=finishBuoy(); if(!f||!fromName||fromName==='FINISH')return null; const from=(buoys||[]).find(b=>b&&b.name===fromName); const id=fromName+'|FINISH'; if(!routeMap.has(id)){routeMap.set(id,{start:fromName,end:'FINISH',distance:routeDistance(from,f),max:1,id:id,syntheticFinish:true});} return id}catch(e){return null}}
+  function setupFinishAllowed(){if(typeof allowed!=='function'||window.__finishAllowedPatched)return; window.__finishAllowedPatched=true; const oldAllowed=allowed; allowed=function(von,prevIds){let arr=oldAllowed.apply(this,arguments)||[]; try{if(von&&von!=='FINISH'&&!finishUsed()&&!(prevIds||[]).some(id=>String(id).endsWith('|FINISH'))&&finishBuoy()){ensureFinishRoute(nrm(von)); if(!arr.includes('FINISH')) arr.push('FINISH');}}catch(e){} return [...new Set(arr)].sort();};}
+  function setupFinishAddLeg(){if(!window.__finishAddLegPatched&&typeof addLeg!=='undefined'&&addLeg){window.__finishAddLegPatched=true; addLeg.addEventListener('click',()=>{try{if(nrm(rNext&&rNext.value)==='FINISH')ensureFinishRoute(nrm(rFrom&&rFrom.value));}catch(e){}},true);}}
+  function setupLogDefaultAndConfirm(){try{let s={}; try{s=JSON.parse(localStorage.getItem(LOG_KEY)||'{}')||{}}catch(e){} if(!('logbookEnabled' in s)){s.logbookEnabled='off'; localStorage.setItem(LOG_KEY,JSON.stringify(s));}
+    const sel=byId('logbookEnabled'); if(sel){sel.value=s.logbookEnabled==='on'?'on':'off'; if(!sel.__v2811){sel.__v2811=true; sel.addEventListener('change',function(ev){if(sel.value==='on'&&!confirm('Logbuch wirklich aktivieren? GPS-Trackpunkte werden gespeichert und können Speicher/Akku verbrauchen.')){sel.value='off'; ev.stopImmediatePropagation(); ev.preventDefault();} try{if(typeof saveLogSettings==='function')saveLogSettings(); else localStorage.setItem(LOG_KEY,JSON.stringify({logbookEnabled:sel.value})); if(typeof applyLogbookEnabledState==='function')applyLogbookEnabledState();}catch(e){}},true);}}
+    if(typeof applyLogbookEnabledState==='function')applyLogbookEnabledState();
+  }catch(e){console.warn('Logbuch-Standard konnte nicht gesetzt werden',e)}}
+  function makeSettingsCollapsible(){try{const card=document.querySelector('#settings .card'); if(!card||card.__v2811Details)return; card.__v2811Details=true; const h2=card.querySelector('h2'); const nodes=[...card.childNodes]; let current=null; nodes.forEach(node=>{if(node.nodeType===1&&node.tagName==='H3'){current=document.createElement('details'); current.className='settings-block'; const sum=document.createElement('summary'); sum.textContent=node.textContent; current.appendChild(sum); node.replaceWith(current);} else if(current && node!==h2 && node.parentNode===card){current.appendChild(node);}});}catch(e){console.warn('Einstellungen konnten nicht eingeklappt werden',e)}}
+  function markOverview(){try{const startNames=new Set((buoys||[]).filter(b=>b.type==='Startboei').map(b=>b.name)); startNames.add('FINISH'); document.querySelectorAll('#overviewTable tbody tr').forEach(tr=>{[0,1,2].forEach(i=>{const td=tr.children[i]; if(td&&startNames.has(td.textContent.trim()))td.classList.add('special-buoy-cell');});});}catch(e){}}
+  function patchRenderOverview(){if(typeof renderOverview==='function'&&!window.__overviewMarkPatched){window.__overviewMarkPatched=true; const old=renderOverview; renderOverview=function(){const out=old.apply(this,arguments); setTimeout(markOverview,0); return out;};}}
+  function patchRender(){if(typeof render==='function'&&!window.__finishRenderPatched){window.__finishRenderPatched=true; const old=render; render=function(){setupFinishAllowed(); const out=old.apply(this,arguments); setTimeout(()=>{setupFinishAddLeg(); markOverview();},0); return out;};}}
+  function patchUpdateUrl(){try{const old=window.regattaForceAppUpdate; if(typeof old==='function'&&!old.__v2811){window.regattaForceAppUpdate=function(){try{if(window.caches&&caches.keys){caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));}}catch(e){} location.replace(location.origin+location.pathname+'?v=2812&t='+Date.now());}; window.regattaForceAppUpdate.__v2811=true; const btn=byId('updateAppBtn'); if(btn)btn.onclick=window.regattaForceAppUpdate;}}catch(e){}}
+  function initV2811(){setupFinishAllowed(); setupFinishAddLeg(); setupLogDefaultAndConfirm(); makeSettingsCollapsible(); patchRenderOverview(); patchRender(); patchUpdateUrl(); try{if(typeof render==='function')render(); else if(typeof renderOverview==='function'&&typeof planState==='function')renderOverview(planState().counts);}catch(e){} markOverview();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initV2811); else initV2811();
+  setTimeout(initV2811,300); setTimeout(initV2811,1200);
+})();
+</script>
+<section id="manual" class="view"><div class="card"><h2>Handbuch</h2><h3>Regatta</h3><p>Plane den nächsten Schlag, wähle Bojen und nutze bei aktivem GPS automatisch die GPS-Geschwindigkeit.</p><h3>Karte</h3><p>Zeigt Bojen, Routen, GPS-Position und optional Bojen-Namen. Der Schalter „Bojen-Namen“ blendet die Namen ein und aus.</p><h3>Plan</h3><p>Übersicht aller Schläge mit ETA, Entfernung, Peilung, Max-Nutzung und Status.</p><h3>Info</h3><p>Zeigt alle Routen mit Filter und Sortierung. Startbojen und FINISH werden hervorgehoben.</p><h3>GPS</h3><p>GPS liefert Position, Speed und Kurs. Die GPS-Geschwindigkeit wird automatisch übernommen. Die Ankunftserkennung zur nächsten Boje funktioniert unabhängig vom Logbuch.</p><h3>FINISH</h3><p>FINISH ist jedes Jahr nur von WV19 erreichbar, wird nicht aus dem Tabellenimport abgeleitet und kann nur einmal als letzter Schlag genutzt werden.</p><h3>Logbuch</h3><p>Das Logbuch bleibt vorerst standardmäßig ausgeschaltet. Es ist nicht für die GPS-Ankunftserkennung erforderlich.</p><h3>Import</h3><p>Der Import befindet sich in den Einstellungen im Bereich „Import“.</p><h3>Einstellungen</h3><p>Simulation, GPS, Import, Logbuch und App-Aktualisierung sind in einklappbaren Bereichen organisiert.</p></div></section><script>
+/* regatta-v28-0-12-runtime */
+(function(){
+ const LOG_KEY='regattaLogSettingsV2808';
+ function byId(id){return document.getElementById(id)}
+ function nrm(v){return (v==null?'':String(v)).trim()}
+ function finishUsed(){try{return (typeof planState==='function'?planState().states:[]).some(s=>nrm(s.nach)==='FINISH')}catch(e){return false}}
+ function finishBuoy(){try{return (buoys||[]).find(b=>b&&b.name==='FINISH')}catch(e){return null}}
+ function distanceNm(a,b){try{if(!a||!b)return 0;if(typeof haversineNm==='function'&&Number.isFinite(a.lat)&&Number.isFinite(a.lon)&&Number.isFinite(b.lat)&&Number.isFinite(b.lon))return haversineNm(a.lat,a.lon,b.lat,b.lon);return 0}catch(e){return 0}}
+ function ensureFinishRoute(fromName){try{if(fromName!=='WV19')return null;const f=finishBuoy();if(!f)return null;const from=(buoys||[]).find(b=>b&&b.name==='WV19');const id='WV19|FINISH';if(!routeMap.has(id)){routeMap.set(id,{start:'WV19',end:'FINISH',distance:distanceNm(from,f),max:1,id,syntheticFinish:true});}return id}catch(e){return null}}
+ function setupFinishAllowed(){if(typeof allowed!=='function'||window.__finishAllowed2812)return;window.__finishAllowed2812=true;const old=allowed;allowed=function(von,prevIds){let arr=old.apply(this,arguments)||[];try{von=nrm(von);const hasFinish=(prevIds||[]).some(id=>String(id)==='WV19|FINISH');if(von==='WV19'&&!finishUsed()&&!hasFinish&&finishBuoy()){ensureFinishRoute('WV19');if(!arr.includes('FINISH'))arr.push('FINISH')}else{arr=arr.filter(x=>x!=='FINISH')}}catch(e){}return [...new Set(arr)].sort();};}
+ function setupFinishAddLeg(){if(window.__finishAddLeg2812||typeof addLeg==='undefined'||!addLeg)return;window.__finishAddLeg2812=true;addLeg.addEventListener('click',()=>{try{if(nrm(rNext&&rNext.value)==='FINISH')ensureFinishRoute(nrm(rFrom&&rFrom.value));}catch(e){}},true)}
+ function setupLogDefault(){try{let s={};try{s=JSON.parse(localStorage.getItem(LOG_KEY)||'{}')||{}}catch(e){}if(!('logbookEnabled' in s)){s.logbookEnabled='off';localStorage.setItem(LOG_KEY,JSON.stringify(s))}const sel=byId('logbookEnabled');if(sel){sel.value=s.logbookEnabled==='on'?'on':'off
