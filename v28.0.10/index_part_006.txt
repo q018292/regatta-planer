@@ -1,0 +1,93 @@
+lue,sn2.value,sn3.value,sn4.value],plan:[...document.querySelectorAll('#planTable tbody tr')].map(tr=>({nach:tr.querySelector('.nach').value,speed:tr.querySelector('.speed').value})),night:document.body.classList.contains('night'),cols:cols()}}function persist(){try{localStorage.setItem(STATE,JSON.stringify(payload()));saveStatus.value='Gespeichert '+new Date().toLocaleTimeString('de-DE')}catch(e){}}function restore(){try{const s=JSON.parse(localStorage.getItem(STATE)||'null');if(!s)return false;rawRakken=s.rawRakken||SAMPLE_RAKKEN;rawBojen=s.rawBojen||SAMPLE_BOJEN;dataSource=s.dataSource||'sample';startTime.value=s.startTime||'14:00';document.body.classList.toggle('night',!!s.night);[sn1.value,sn2.value,sn3.value,sn4.value]=s.startnrs||['','','',''];if(s.cols)localStorage.setItem('regattaCols',JSON.stringify(s.cols));rebuild(false);if(s.startBuoy)startBuoy.value=s.startBuoy;pendingPlanRestore=s.plan;render();return true}catch(e){return false}}function exportJson(){const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='regatta-stand.json';a.click();URL.revokeObjectURL(a.href)}async function importJson(file){const s=JSON.parse(await file.text());rawRakken=s.rawRakken||SAMPLE_RAKKEN;rawBojen=s.rawBojen||SAMPLE_BOJEN;dataSource=s.dataSource||'imported';startTime.value=s.startTime||'14:00';[sn1.value,sn2.value,sn3.value,sn4.value]=s.startnrs||['','','',''];rebuild(false);if(s.startBuoy)startBuoy.value=s.startBuoy;pendingPlanRestore=s.plan;render();applySimulationSpeedToNextLeg();persist()}function resetToolAction(){if(!confirm('Alle lokalen Daten löschen und Beispieldaten laden?'))return;localStorage.removeItem(STATE);localStorage.removeItem('regattaCols');rawRakken=structuredClone(SAMPLE_RAKKEN);rawBojen=structuredClone(SAMPLE_BOJEN);dataSource='sample';clearPlanner();rebuild(true)}
+const COLS=[['Nr.',1,true],['Von',2,true],['Nach',3,true],['RouteID',4],['Entfernung',5],['Peilung',6],['Speed',7,true],['Dauer',8],['ETA',9],['Summe',10],['Max',11],['Genutzt',12],['Status',13,true],['Hinweis',14]];function cols(){try{return JSON.parse(localStorage.getItem('regattaCols')||'null')||COLS.map(c=>c[1])}catch(e){return COLS.map(c=>c[1])}}function buildCols(){const s=new Set(cols());columnMenu.innerHTML='';COLS.forEach(c=>{const l=document.createElement('label'),cb=document.createElement('input');cb.type='checkbox';cb.checked=s.has(c[1]);cb.disabled=!!c[2];cb.onchange=()=>{const x=new Set(cols());cb.checked?x.add(c[1]):x.delete(c[1]);localStorage.setItem('regattaCols',JSON.stringify([...x]));applyCols();persist()};l.append(cb,document.createTextNode(c[0]));columnMenu.append(l)});applyCols()}function applyCols(){const s=new Set(cols());[...planTable.rows].forEach(r=>[...r.cells].forEach((cell,i)=>cell.classList.toggle('col-hidden',!s.has(i+1))));planTable.querySelectorAll('col').forEach((c,i)=>c.classList.toggle('col-hidden',!s.has(i+1)))}
+function init(){try{['regattaV10State','regattaV11State','regattaV12State','regattaV13State','regattaV14State','regattaV15State'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});makeRows();buildCols();if(!restore()){rawRakken=structuredClone(SAMPLE_RAKKEN);rawBojen=structuredClone(SAMPLE_BOJEN);dataSource='sample';rebuild(true)}syncText();document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));const view=document.getElementById(b.dataset.view);if(view)view.classList.add('active');if(b.dataset.view==='mapview')initMap()});startTime.oninput=()=>{render();applySimulationSpeedToNextLeg();persist()};startBuoy.onchange=()=>{clearPlanner();rNext.value='';rSpeed.value='';render();applySimulationSpeedToNextLeg();persist()};nightToggle.onclick=()=>{document.body.classList.toggle('night');nightToggle.textContent=document.body.classList.contains('night')?'Tagansicht':'Nachtansicht';persist()};if(manualSave)manualSave.onclick=persist;if(manualSaveTop)manualSaveTop.onclick=persist;exportJsonTop.onclick=exportJson;saveJson.onclick=exportJson;loadJsonBtn.onclick=()=>loadJson.click();loadJson.onchange=()=>loadJson.files[0]&&importJson(loadJson.files[0]);if(resetToolBtn)resetToolBtn.onclick=resetToolAction;importFiles.onclick=importWorkbooks;applyText.onclick=()=>{rawRakken=parseTsv(rakkenTxt.value);rawBojen=parseTsv(bojenTxt.value);dataSource='imported';rebuild(true)};if(bulkSpeed)bulkSpeed.oninput=updateSelectionStyles;if(applyBulkSpeed)applyBulkSpeed.onclick=applyBulkSpeedToSelection;if(applyFollowingSpeed)applyFollowingSpeed.onclick=applySpeedFromSelection;if(clearSelection)clearSelection.onclick=clearSelectedLegs;startGps.onclick=startGpsWatch;stopGps.onclick=stopGpsWatch;centerGps.onclick=centerOnGps;useGpsSpeed.onclick=useCurrentGpsSpeed;setInterval(persist,30000);setInterval(updateRegattaCompactKpis,5000);updateAddButton()}catch(e){console.error(e);alert('App-Startfehler: '+e.message)}}const APP_VERSION='v28.0.10';const APP_VERSION_KEY='v_28_0_10_info_start_nav';function todayKey(){return new Date().toISOString().slice(0,10)}function hideAppHeader(){document.body.classList.add('header-hidden')}function initVersionHeader(){const key='hideHeaderToday_'+APP_VERSION_KEY;if(localStorage.getItem(key)===todayKey()){hideAppHeader();return}const btn=document.getElementById('hideHeaderToday');if(btn)btn.onclick=()=>{localStorage.setItem(key,todayKey());hideAppHeader()};setTimeout(hideAppHeader,8000)}function regattaV23Enhance(){window.regattaSim=window.regattaSim||{enabled:false,sog:5.5,cog:90};const order=[['regatta','Regatta-Modus'],['plan','Fahrplan'],['mapview','Karte'],['overview','Streckenübersicht'],['logbook','Logbuch'],['import','Import'],['settings','Einstellungen']];const nav=document.querySelector('.nav');if(nav)nav.style.display='flex';let pager=document.getElementById('viewPager');if(!pager){pager=document.createElement('div');pager.id='viewPager';pager.className='viewPager';pager.innerHTML='<button id="viewPrev" type="button">‹</button><div id="viewPagerTitle" class="viewPagerTitle"></div><button id="viewNext" type="button">›</button>';const anchor=nav||document.getElementById('appHeader')||document.body.firstChild;if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(pager,anchor.nextSibling);else document.body.insertBefore(pager,document.body.firstChild)}let current=Math.max(0,order.findIndex(x=>document.getElementById(x[0])&&document.getElementById(x[0]).classList.contains('active')));function showView(i){current=(i+order.length)%order.length;order.forEach(([id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',id===order[current][0])});const title=document.getElementById('viewPagerTitle');if(title)title.textContent=order[current][1];if(order[current][0]==='mapview'&&typeof initMap==='function')setTimeout(initMap,50)}document.getElementById('viewPrev').onclick=()=>showView(current-1);document.getElementById('viewNext').onclick=()=>showView(current+1);/* swipe navigation removed in v28.0.10 */showView(current);const simSel=document.getElementById('simGpsEnabled'),simSog=document.getElementById('simSog'),simCog=document.getElementById('simCog'),simStatus=document.getElementById('simStatus');function applySim(on){window.regattaSim.enabled=on;window.regattaSim.sog=Number(simSog&&simSog.value||5.5);window.regattaSim.cog=Number(simCog&&simCog.value||90);if(simStatus)simStatus.value=on?'Simulation aktiv':'Simulation aus';if(typeof applySimulationSpeedToNextLeg==='function')applySimulationSpeedToNextLeg();if(typeof updateRegattaCompactKpis==='function')updateRegattaCompactKpis()}if(simSel){simSel.onchange=()=>{if(simSel.value==='on'){if(confirm('GPS-Simulation wirklich starten? Echte GPS-Daten werden in der Regatta-Anzeige übersteuert.'))applySim(true);else{simSel.value='off';applySim(false)}}else applySim(false)}}if(simSog)simSog.oninput=()=>applySim(window.regattaSim.enabled);if(simCog)simCog.oninput=()=>applySim(window.regattaSim.enabled);setInterval(()=>{if(typeof applySimulationSpeedToNextLeg==='function')applySimulationSpeedToNextLeg();if(typeof updateRegattaCompactKpis==='function')updateRegattaCompactKpis()},5000)}
+function regattaApplySimulation(on,skipConfirm){window.regattaSim=window.regattaSim||{enabled:false,sog:5.5,cog:90};const simSel=document.getElementById('simGpsEnabled'),simSog=document.getElementById('simSog'),simCog=document.getElementById('simCog'),simStatus=document.getElementById('simStatus');if(on&&!skipConfirm&&!confirm('GPS-Simulation wirklich starten? Echte GPS-Daten werden in der Regatta-Anzeige übersteuert.')){if(simSel)simSel.value='off';on=false}window.regattaSim.enabled=!!on;window.regattaSim.sog=Number(simSog&&simSog.value||5.5);window.regattaSim.cog=Number(simCog&&simCog.value||90);if(simStatus)simStatus.value=on?'Simulation aktiv':'Simulation aus';if(gpsStatus)gpsStatus.value=on?'Simulation':'Nicht aktiv';if(on&&rSpeed){applySimulationSpeedToNextLeg()}if(rStatus){rStatus.textContent=on?'Simulation':rStatus.textContent;rStatus.className=on?'gpsStateSim':rStatus.className}if(typeof applySimulationSpeedToNextLeg==='function')applySimulationSpeedToNextLeg();if(typeof updateRegattaCompactKpis==='function')updateRegattaCompactKpis()}function regattaSettingsInit(){window.regattaSim=window.regattaSim||{enabled:false,sog:5.5,cog:90};const simSel=document.getElementById('simGpsEnabled'),simSog=document.getElementById('simSog'),simCog=document.getElementById('simCog');if(simSel){simSel.onchange=()=>regattaApplySimulation(simSel.value==='on',false)}if(simSog)simSog.oninput=()=>regattaApplySimulation(window.regattaSim&&window.regattaSim.enabled,true);if(simCog)simCog.oninput=()=>regattaApplySimulation(window.regattaSim&&window.regattaSim.enabled,true);regattaApplySimulation(simSel&&simSel.value==='on',true)}/* v28.0.10: duplicate simulation confirmation listener removed */
+initVersionHeader();init();regattaSettingsInit();
+
+/* regatta-v27-0-logbook-track-start */
+const REGATTA_GPS_LOG_KEY='regattaGpsLogV27';
+let gpsLogbook=[];
+let gpsTrackLayer=null;
+function loadGpsLogbook(){try{gpsLogbook=JSON.parse(localStorage.getItem(REGATTA_GPS_LOG_KEY)||'[]')||[]}catch(e){gpsLogbook=[]}updateGpsLogCount()}
+function saveGpsLogbook(){try{localStorage.setItem(REGATTA_GPS_LOG_KEY,JSON.stringify(gpsLogbook))}catch(e){}updateGpsLogCount()}
+function updateGpsLogCount(){const el=document.getElementById('gpsLogCount');if(el)el.textContent=(gpsLogbook?gpsLogbook.length:0)+' Logpunkte'}
+function gpsTrackEnabled(){const t=document.getElementById('gpsTrackToggle');return !t||t.checked}
+function gpsLogRecordFromPosition(pos){
+  const c=pos&&pos.coords?pos.coords:null;if(!c)return null;
+  return {time:new Date().toISOString(),lat:c.latitude,lon:c.longitude,sog:Number.isFinite(c.speed)?c.speed*1.94384:null,cog:Number.isFinite(c.heading)?c.heading:null,accuracy:Number.isFinite(c.accuracy)?c.accuracy:null};
+}
+function addGpsLogPoint(pos){
+  try{
+    const rec=gpsLogRecordFromPosition(pos);if(!rec||!Number.isFinite(rec.lat)||!Number.isFinite(rec.lon))return;
+    const last=gpsLogbook[gpsLogbook.length-1];
+    if(last&&last.lat===rec.lat&&last.lon===rec.lon)return;
+    gpsLogbook.push(rec);saveGpsLogbook();renderGpsTrack();
+  }catch(e){console.warn('GPS-Logpunkt konnte nicht gespeichert werden:',e)}
+}
+function renderGpsTrack(){
+  try{
+    if(typeof L==='undefined'||!mapObj)return;
+    if(!gpsTrackLayer)gpsTrackLayer=L.layerGroup().addTo(mapObj);
+    gpsTrackLayer.clearLayers();
+    if(!gpsTrackEnabled()||!gpsLogbook||gpsLogbook.length<2)return;
+    const pts=gpsLogbook.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>[p.lat,p.lon]);
+    if(pts.length<2)return;
+    L.polyline(pts,{color:'#2563eb',weight:4,opacity:.85}).addTo(gpsTrackLayer).bindPopup('Tatsächlich gesegelte Route<br>'+pts.length+' Logpunkte');
+  }catch(e){console.warn('GPS-Track konnte nicht gezeichnet werden:',e)}
+}
+function exportGpsLogCsv(){
+  try{
+    const rows=[['time','lat','lon','sog_kn','cog_deg','accuracy_m']].concat((gpsLogbook||[]).map(p=>[p.time,p.lat,p.lon,p.sog==null?'':Number(p.sog).toFixed(2),p.cog==null?'':Math.round(Number(p.cog)),p.accuracy==null?'':Math.round(Number(p.accuracy))]));
+    const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='regatta-gps-logbuch.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }catch(e){alert('Logbuch-Export fehlgeschlagen: '+e.message)}
+}
+function clearGpsLogbook(){if(!confirm('GPS-Logbuch wirklich löschen?'))return;gpsLogbook=[];saveGpsLogbook();renderGpsTrack()}
+function regattaGpsLogbookPatch(){
+  if(window.__regattaGpsLogbookPatchApplied)return;window.__regattaGpsLogbookPatchApplied=true;
+  loadGpsLogbook();
+  const later=()=>setTimeout(()=>{try{renderGpsTrack()}catch(e){}},0);
+  try{
+    const t=document.getElementById('gpsTrackToggle');if(t)t.onchange=later;
+    const ex=document.getElementById('exportGpsLog');if(ex)ex.onclick=exportGpsLogCsv;
+    const cl=document.getElementById('clearGpsLog');if(cl)cl.onclick=clearGpsLogbook;
+    if(typeof updateGpsInfo==='function'){
+      const oldUpdateGpsInfo=updateGpsInfo;
+      updateGpsInfo=function(pos){const out=oldUpdateGpsInfo.apply(this,arguments);addGpsLogPoint(pos);return out};
+    }
+    if(typeof initMap==='function'){
+      const oldInitMap=initMap;
+      initMap=function(){const out=oldInitMap.apply(this,arguments);later();return out};
+    }
+    if(typeof renderBuoyMap==='function'){
+      const oldRenderBuoyMap=renderBuoyMap;
+      renderBuoyMap=function(){const out=oldRenderBuoyMap.apply(this,arguments);later();return out};
+    }
+    later();
+  }catch(e){console.warn('GPS-Logbuch-Patch konnte nicht initialisiert werden:',e)}
+}
+/* regatta-v27-0-logbook-track-end */
+regattaGpsLogbookPatch();
+
+/* regatta-v26-1-route-overlay-start */
+let routeOverlayLayer=null;
+function routeOverlayEnabled(){
+  const toggle=document.getElementById('routeOverlayToggle');
+  return !toggle || toggle.checked;
+}
+function routeOverlayBuoy(name){
+  try{return buoys.find(b=>b.name===norm(name)&&Number.isFinite(b.lat)&&Number.isFinite(b.lon))}catch(e){return null}
+}
+function renderRouteOverlay(){
+  try{
+    if(typeof L==='undefined'||!mapObj)return;
+    if(!routeOverlayLayer)routeOverlayLayer=L.layerGroup().addTo(mapObj);
+    routeOverlayLayer.clearLayers();
+    if(!routeOverlayEnabled())return;
+    const st=typeof planState==='function'?planState():null;
+    if(!st||!st.states)return;
+    const seen={};
+    st.states.filter(s=>s&&s.nach).forEach(s=>{
+      const from=routeOverlayBuoy(s.von), to=routeOverlayBuoy(s.nach);
+      if(!from||!to)return;
+      const id=(s.von||'')+'

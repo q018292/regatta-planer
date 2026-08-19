@@ -1,0 +1,29 @@
+ax'; if(g===0) return 'open'; return 'ok'; }
+  window.renderOverview=function(counts){
+    const table=document.getElementById('overviewTable'); if(!table||!table.querySelector('tbody')) return oldRenderOverview?oldRenderOverview(counts):undefined;
+    const filter=(document.getElementById('overviewStatusFilter')||{}).value||'all';
+    let rows=routes.map(r=>{const g=counts[r.id]||0, max=Number(r.max)||0, rest=max-g, bucket=statusBucket(g,max), status=bucket==='max'?'Max erreicht':bucket==='open'?'nicht gefahren':'OK'; return {id:r.id,start:r.start,end:r.end,distance:r.distance,max,used:g,rest,status,bucket};});
+    if(filter!=='all') rows=rows.filter(r=>r.bucket===filter);
+    rows.sort((a,b)=>{let ka=a[overviewSort.key], kb=b[overviewSort.key]; if(typeof ka==='string') return overviewSort.dir*ka.localeCompare(String(kb),'de'); return overviewSort.dir*((Number(ka)||0)-(Number(kb)||0));});
+    table.querySelector('tbody').innerHTML=rows.map(r=>`<tr class="${r.bucket==='max'?'overview-max-reached':r.rest===1?'overview-last':'overview-open'}"><td>${esc(r.id)}</td><td>${esc(r.start)}</td><td>${esc(r.end)}</td><td>${Number(r.distance).toFixed(1)}</td><td>${r.max}</td><td>${r.used}</td><td>${r.rest}</td><td class="${r.bucket==='max'?'bad':r.bucket==='ok'?'ok':''}">${r.status}</td></tr>`).join('');
+  };
+  function bind(){
+    ['sn1','sn2','sn3','sn4'].forEach(id=>numericOnly(document.getElementById(id))); autoCollapseStart();
+    const f=document.getElementById('overviewStatusFilter'); if(f)f.onchange=()=>{try{renderOverview(planState().counts)}catch(e){}};
+    document.querySelectorAll('#overviewTable th[data-sort]').forEach(th=>{th.onclick=()=>{const k=th.dataset.sort; overviewSort.dir=overviewSort.key===k?-overviewSort.dir:1; overviewSort.key=k; try{renderOverview(planState().counts)}catch(e){}}});
+    try{renderOverview(planState().counts)}catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('RegattaPlaner Service Worker aktiv - v24.4.1 (2026-08-16)'))
+      .catch(err => console.warn('Service Worker Registrierung fehlgeschlagen:', err));
+  });
+}
+</script>
+<section id="manual" class="view"><div class="card"><h2>Handbuch</h2><p>Automatisch ergänzt.</p></div></section></body></html>
