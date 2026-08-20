@@ -1,8 +1,0 @@
-index_part_001.txt
-index_part_002.txt
-index_part_003.txt
-index_part_004.txt
-index_part_005.txt
-index_part_006.txt
-index_part_007.txt
-index_part_008.txt
