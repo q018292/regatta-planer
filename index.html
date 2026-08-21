@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RegattaPlaner">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>Regatta-Routenplaner 24h - v29.1.4</title>
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<title>Regatta-Routenplaner 24h - v30.0.4</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -33,9 +33,10 @@
 /* regatta-v29-1-4 finish and locked plan */
 #planTable tbody tr.finish-route-v2914 td{background:#fff3cd!important;color:#7c2d12!important;font-weight:900!important;border-top:3px solid #f59e0b!important;border-bottom:3px solid #f59e0b!important}#planTable tbody tr.finish-route-v2914 td:first-child{border-left:5px solid #d97706!important}#planTable tbody tr.after-finish-v2914{display:none!important}.finish-plan-v2914{display:none;margin:0 0 12px;padding:15px;border:2px solid #d97706;border-radius:12px;background:#fff3cd;color:#7c2d12;font-weight:800}.finish-plan-v2914.show{display:block!important}.finish-plan-v2914 button{display:inline-block!important;margin-top:10px!important;padding:11px 16px!important;border:2px solid #14532d!important;border-radius:9px!important;background:#166534!important;color:#fff!important;font-weight:900!important;box-shadow:0 2px 8px rgba(20,83,45,.25)!important}.plan-locked-v2914 #planTable input,.plan-locked-v2914 #planTable select,.plan-locked-v2914 #regatta input,.plan-locked-v2914 #regatta select,.plan-locked-v2914 #regatta button,.plan-locked-v2914 #plan button:not(.archive-control-v2914),.plan-locked-v2914 #plan input,.plan-locked-v2914 #plan select{pointer-events:none!important;opacity:.68!important}.plan-locked-banner-v2914{padding:12px;margin-bottom:10px;border-radius:10px;background:#14532d;color:#fff;font-weight:900}.plan-locked-v2914 #finishPlanV2914{display:none!important}#routeArchiveV2913a{display:block!important}.plan-locked-v2914 #routeArchiveV2913a,.plan-locked-v2914 #routeArchiveV2913a *{pointer-events:auto!important;opacity:1!important}
 </style>
+<script>document.addEventListener('DOMContentLoaded',()=>{const startInput=document.getElementById('startTime');if(startInput){startInput.type='text';startInput.inputMode='numeric';startInput.autocomplete='off';startInput.placeholder='HH:MM'}})</script>
 </head>
 <body>
-<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v29.1.4</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v29.1.4: Logbuch ist einklappbar und kann deaktiviert werden; Log-Ansicht und GPS-Track werden dann ausgeblendet.</p></header>
+<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.0.4</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.0.4: Startzeiten werden verbindlich im 24-Stunden-Format angezeigt.</p></header>
 <div class="nav" aria-label="Ansichten"><button class="active" data-view="regatta"><span>🏁</span>Regatta</button><button data-view="mapview"><span>🗺</span>Karte</button><button data-view="plan"><span>📋</span>Plan</button><button data-view="overview"><span>📊</span>Info</button><button data-view="logbook" id="logNavBtn"><span>🧭</span>Log</button><button data-view="import"><span>⇅</span>Import</button><button data-view="settings"><span>⚙</span>Setup</button><button data-view="manual"><span>?</span>Hilfe</button></div>
 <div id="sampleBanner" class="sample">⚠ Beispieldaten aktiv: Eigene Rakken- und Bojen-Dateien wurden noch nicht importiert oder das Tool wurde zurückgesetzt.</div>
 <section id="regatta" class="view active">
@@ -176,9 +177,11 @@ function loadGpsLogbook(){try{gpsLogbook=JSON.parse(localStorage.getItem(REGATTA
 function saveGpsLogbook(){try{localStorage.setItem(REGATTA_GPS_LOG_KEY,JSON.stringify(gpsLogbook))}catch(e){}updateGpsLogCount()}
 function updateGpsLogCount(){const el=document.getElementById('gpsLogCount');if(el)el.textContent=(gpsLogbook?gpsLogbook.length:0)+' Logpunkte'}
 function gpsTrackEnabled(){const t=document.getElementById('gpsTrackToggle');return !t||t.checked}
+function formatGermanDateTime(date){return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(date)}
+function parseStoredDateTime(value){if(value instanceof Date)return value;const text=String(value||'');const german=text.match(/^(\d{2})\.(\d{2})\.(\d{4}),?\s+(\d{2}):(\d{2})(?::(\d{2}))?/);if(german)return new Date(Number(german[3]),Number(german[2])-1,Number(german[1]),Number(german[4]),Number(german[5]),Number(german[6]||0));const parsed=new Date(text);return Number.isNaN(parsed.getTime())?null:parsed}
 function gpsLogRecordFromPosition(pos){
   const c=pos&&pos.coords?pos.coords:null;if(!c)return null;
-  return {time:new Date().toISOString(),lat:c.latitude,lon:c.longitude,sog:Number.isFinite(c.speed)?c.speed*1.94384:null,cog:Number.isFinite(c.heading)?c.heading:null,accuracy:Number.isFinite(c.accuracy)?c.accuracy:null};
+  return {time:formatGermanDateTime(new Date()),lat:c.latitude,lon:c.longitude,sog:Number.isFinite(c.speed)?c.speed*1.94384:null,cog:Number.isFinite(c.heading)?c.heading:null,accuracy:Number.isFinite(c.accuracy)?c.accuracy:null};
 }
 function addGpsLogPoint(pos){
   try{
@@ -370,13 +373,13 @@ async function releaseGpsWakeLock(){try{if(gpsWakeLock){await gpsWakeLock.releas
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&typeof gpsWatchId!=='undefined'&&gpsWatchId!==null)acquireGpsWakeLock()});
 function syncMapGpsStatus(){try{const dot=document.getElementById('mapGpsDot'),txt=document.getElementById('mapGpsText');if(!dot||!txt)return;let state={txt:'GPS nicht aktiv',dot:'🔴',cls:'gpsStateBad'};if(typeof gpsFreshStateCompact==='function'){state=gpsFreshStateCompact();if(state.txt==='Kein GPS')state.txt='GPS nicht aktiv'}dot.textContent=state.dot;dot.className='gpsDot '+state.cls;txt.textContent=state.txt;applyLogbookEnabledState()}catch(e){}}function lastTrackPoint(){for(let i=(gpsLogbook||[]).length-1;i>=0;i--){const p=gpsLogbook[i];if(p&&p.type!=='BOJE_GERUNDET'&&Number.isFinite(p.lat)&&Number.isFinite(p.lon))return p}return null}
 function angleDiff(a,b){if(!Number.isFinite(a)||!Number.isFinite(b))return 0;let d=Math.abs(a-b)%360;return d>180?360-d:d}
-function shouldLogPoint(rec){if(!isLogbookEnabled())return false;const last=lastTrackPoint();if(!last)return true;const s=logSettings();const dt=(new Date(rec.time)-new Date(last.time))/1000;if(dt<Math.max(3,s.minSeconds))return false;const dist=(typeof haversineNm==='function')?haversineNm(last.lat,last.lon,rec.lat,rec.lon):999;const course=angleDiff(Number(last.cog),Number(rec.cog));return dist>=s.minDistance||course>=s.courseChange||dt>=s.heartbeatMinutes*60}
-function maybeLogRoundedBuoy(pos,rec){try{if(!isLogbookEnabled())return;const t=typeof targetBuoy==='function'?targetBuoy():null;if(!t||!Number.isFinite(t.lat)||!Number.isFinite(t.lon))return;const s=logSettings();const d=haversineNm(rec.lat,rec.lon,t.lat,t.lon);if(!(d<=s.waypointRadius))return;const key='rounded_'+t.name;const now=Date.now();const last=Number(sessionStorage.getItem(key)||0);if(now-last<10*60*1000)return;sessionStorage.setItem(key,String(now));document.dispatchEvent(new CustomEvent('regattaV2905eArrival',{detail:{name:t.name,time:new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}}));gpsLogbook.push({type:'BOJE_GERUNDET',time:new Date().toISOString(),target:t.name,lat:rec.lat,lon:rec.lon,sog:rec.sog,cog:rec.cog,accuracy:rec.accuracy,distanceNm:d})}catch(e){console.warn('Bojen-Rundung konnte nicht geloggt werden:',e)}}
+function shouldLogPoint(rec){if(!isLogbookEnabled())return false;const last=lastTrackPoint();if(!last)return true;const s=logSettings(),currentTime=parseStoredDateTime(rec.time),lastTime=parseStoredDateTime(last.time);if(!currentTime||!lastTime)return false;const dt=(currentTime-lastTime)/1000;if(dt<Math.max(3,s.minSeconds))return false;const dist=(typeof haversineNm==='function')?haversineNm(last.lat,last.lon,rec.lat,rec.lon):999;const course=angleDiff(Number(last.cog),Number(rec.cog));return dist>=s.minDistance||course>=s.courseChange||dt>=s.heartbeatMinutes*60}
+function maybeLogRoundedBuoy(pos,rec){try{if(!isLogbookEnabled())return;const t=typeof targetBuoy==='function'?targetBuoy():null;if(!t||!Number.isFinite(t.lat)||!Number.isFinite(t.lon))return;const s=logSettings();const d=haversineNm(rec.lat,rec.lon,t.lat,t.lon);if(!(d<=s.waypointRadius))return;const key='rounded_'+t.name;const now=Date.now();const last=Number(sessionStorage.getItem(key)||0);if(now-last<10*60*1000)return;sessionStorage.setItem(key,String(now));document.dispatchEvent(new CustomEvent('regattaV2905eArrival',{detail:{name:t.name,time:new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}}));gpsLogbook.push({type:'BOJE_GERUNDET',time:formatGermanDateTime(new Date()),target:t.name,lat:rec.lat,lon:rec.lon,sog:rec.sog,cog:rec.cog,accuracy:rec.accuracy,distanceNm:d})}catch(e){console.warn('Bojen-Rundung konnte nicht geloggt werden:',e)}}
 const originalGpsLogRecordFromPosition=typeof gpsLogRecordFromPosition==='function'?gpsLogRecordFromPosition:null;gpsLogRecordFromPosition=function(pos){const rec=originalGpsLogRecordFromPosition?originalGpsLogRecordFromPosition(pos):null;if(rec&&!rec.type)rec.type='TRACK';return rec};
 addGpsLogPoint=function(pos){try{if(!isLogbookEnabled()){updateLogbookView();return}const rec=gpsLogRecordFromPosition(pos);if(!rec||!Number.isFinite(rec.lat)||!Number.isFinite(rec.lon))return;maybeLogRoundedBuoy(pos,rec);if(shouldLogPoint(rec))gpsLogbook.push(rec);saveGpsLogbook();renderGpsTrack();updateLogbookView()}catch(e){console.warn('GPS-Logpunkt konnte nicht gespeichert werden:',e)}};
 const oldRenderGpsTrack=typeof renderGpsTrack==='function'?renderGpsTrack:null;renderGpsTrack=function(){if(!isLogbookEnabled()){try{if(gpsTrackLayer)gpsTrackLayer.clearLayers()}catch(e){}return}if(oldRenderGpsTrack)return oldRenderGpsTrack.apply(this,arguments)};
 updateGpsLogCount=function(){const n=(gpsLogbook||[]).length;const el=document.getElementById('gpsLogCount');if(el)el.textContent=isLogbookEnabled()?n+' Logpunkte':'Logbuch aus';const title=document.getElementById('logbookTitle');if(title)title.textContent='GPS-Logbuch ('+n+' Einträge)'};
-function updateLogbookView(){updateGpsLogCount();syncMapGpsStatus();const tb=document.querySelector('#gpsLogTable tbody');if(!tb)return;const rows=(gpsLogbook||[]).slice(-250).reverse();tb.innerHTML=rows.map(p=>{const typ=p.type==='BOJE_GERUNDET'?'Boje gerundet':'Track';const cls=p.type==='BOJE_GERUNDET'?' class="log-event"':'';const pos=(Number.isFinite(p.lat)&&Number.isFinite(p.lon))?(Number(p.lat).toFixed(5)+', '+Number(p.lon).toFixed(5)):'';const sog=p.sog==null?'':Number(p.sog).toFixed(2)+' kn';const cog=p.cog==null?'':Math.round(Number(p.cog))+'°';const info=p.type==='BOJE_GERUNDET'?('Ziel: '+(p.target||'')+(p.distanceNm!=null?' • '+Number(p.distanceNm).toFixed(3)+' NM':'')):(p.accuracy!=null?'±'+Math.round(Number(p.accuracy))+' m':'');return '<tr'+cls+'><td>'+new Date(p.time).toLocaleTimeString('de-DE')+'</td><td>'+typ+'</td><td>'+pos+'</td><td>'+sog+'</td><td>'+cog+'</td><td>'+info+'</td></tr>'}).join('')}
+function updateLogbookView(){updateGpsLogCount();syncMapGpsStatus();const tb=document.querySelector('#gpsLogTable tbody');if(!tb)return;const rows=(gpsLogbook||[]).slice(-250).reverse();tb.innerHTML=rows.map(p=>{const typ=p.type==='BOJE_GERUNDET'?'Boje gerundet':'Track';const cls=p.type==='BOJE_GERUNDET'?' class="log-event"':'';const pos=(Number.isFinite(p.lat)&&Number.isFinite(p.lon))?(Number(p.lat).toFixed(5)+', '+Number(p.lon).toFixed(5)):'';const sog=p.sog==null?'':Number(p.sog).toFixed(2)+' kn';const cog=p.cog==null?'':Math.round(Number(p.cog))+'°';const info=p.type==='BOJE_GERUNDET'?('Ziel: '+(p.target||'')+(p.distanceNm!=null?' • '+Number(p.distanceNm).toFixed(3)+' NM':'')):(p.accuracy!=null?'±'+Math.round(Number(p.accuracy))+' m':'');const timestamp=parseStoredDateTime(p.time);return '<tr'+cls+'><td>'+(timestamp?formatGermanDateTime(timestamp):String(p.time||''))+'</td><td>'+typ+'</td><td>'+pos+'</td><td>'+sog+'</td><td>'+cog+'</td><td>'+info+'</td></tr>'}).join('')}
 exportGpsLogCsv=function(){try{if(!isLogbookEnabled()){alert('Logbuch ist deaktiviert.');return}const rows=[['type','time','target','lat','lon','sog_kn','cog_deg','accuracy_m','distance_nm']].concat((gpsLogbook||[]).map(p=>[p.type||'TRACK',p.time,p.target||'',p.lat,p.lon,p.sog==null?'':Number(p.sog).toFixed(2),p.cog==null?'':Math.round(Number(p.cog)),p.accuracy==null?'':Math.round(Number(p.accuracy)),p.distanceNm==null?'':Number(p.distanceNm).toFixed(4)]));const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='regatta-gps-logbuch.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}catch(e){alert('Logbuch-Export fehlgeschlagen: '+e.message)}};
 function exportGpsLogGpx(){if(!isLogbookEnabled()){alert('Logbuch ist deaktiviert.');return}const pts=(gpsLogbook||[]).filter(p=>p.type!=='BOJE_GERUNDET'&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>'  <trkpt lat="'+p.lat+'" lon="'+p.lon+'"><time>'+p.time+'</time></trkpt>').join('\n');const wpts=(gpsLogbook||[]).filter(p=>p.type==='BOJE_GERUNDET'&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>'  <wpt lat="'+p.lat+'" lon="'+p.lon+'"><name>'+String(p.target||'Boje gerundet').replace(/[<>&]/g,'')+'</name><time>'+p.time+'</time></wpt>').join('\n');const gpx='<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="RegattaPlaner v29.1.4" xmlns="http://www.topografix.com/GPX/1/1">\n'+wpts+'\n<trk><name>Regatta GPS Track</name><trkseg>\n'+pts+'\n</trkseg></trk>\n</gpx>';const blob=new Blob([gpx],{type:'application/gpx+xml;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='regatta-gps-track.gpx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function regattaForceAppUpdate(){try{if(window.caches&&caches.keys){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)))}if('serviceWorker'in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(async r=>{try{await r.update()}catch(e){}return r}))}}catch(e){console.warn('App-Aktualisierung konnte Cache nicht vollständig leeren:',e)}location.replace(location.origin+location.pathname+'?v=2810&t='+Date.now())}
@@ -415,7 +418,7 @@ async function toggleMapFullscreen(){const el=document.getElementById('mapview')
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('RegattaPlaner Service Worker aktiv - v24.4.1 (2026-08-16)'))
+      .then(() => console.log('RegattaPlaner Service Worker aktiv - v29.1.5'))
       .catch(err => console.warn('Service Worker Registrierung fehlgeschlagen:', err));
   });
 }
@@ -424,11 +427,12 @@ if ('serviceWorker' in navigator) {
 <script id="regatta-v28-1-1-clean-runtime">
 (function(){
 'use strict';
-const VERSION='v29.1.4';
+const VERSION='v30.0.4';
 function byId(id){return document.getElementById(id)}
 function once(){
  document.documentElement.style.setProperty('--nav-count',document.body.classList.contains('logbook-disabled')?'6':'7');
  const badge=document.querySelector('.versionBadge');if(badge)badge.textContent=VERSION;
+ const updateButton=byId('updateAppBtn');if(updateButton&&!byId('appVersion')){const version=document.createElement('p');version.id='appVersion';version.className='settings-note';version.textContent='Programmversion: '+VERSION;updateButton.parentElement.insertAdjacentElement('afterend',version)}
  const news=byId('releaseNews');if(news)news.textContent='v29.0.6 Clean: Navigation-Fix, konsolidierte GPS-Anzeige, FINISH-Regel, Bojennamen, Import in Setup und bereinigte Bedienung.';
  const importNav=document.querySelector('.nav button[data-view="import"]');if(importNav)importNav.remove();
  const importView=byId('import'),settings=byId('settings');
@@ -937,6 +941,56 @@ function bindReset(){var reset=byId('resetTool');if(!reset||reset.dataset.v2914B
 function keepArchiveVisible(){var old=byId('routeArchiveV2913');if(old)old.remove();var archive=byId('routeArchiveV2913a');if(archive){archive.hidden=false;archive.style.display='block'}}
 function boot(){ensureSavePanel();guardAfterFinish();bindReset();keepArchiveVisible();applyLock();decoratePlan();var body=document.querySelector('#planTable tbody');if(body)new MutationObserver(function(){decoratePlan();applyLock();keepArchiveVisible()}).observe(body,{childList:true,subtree:true,attributes:true,attributeFilter:['value']});document.addEventListener('change',function(e){if(e.target&&e.target.classList.contains('nach'))setTimeout(decoratePlan,0)},true);setInterval(function(){decoratePlan();keepArchiveVisible()},700)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+<script id="regatta-v29-1-5-stability-runtime">
+(function(){
+'use strict';
+function syncRuntimeGlobals(){
+  window.routes=routes;
+  window.buoys=buoys;
+  window.routeMap=routeMap;
+  window.mapObj=mapObj;
+  window.lastGps=lastGps;
+  window.gpsWatchId=gpsWatchId;
+}
+const originalRebuild=rebuild;
+rebuild=function(){const result=originalRebuild.apply(this,arguments);syncRuntimeGlobals();return result;};
+const originalInitMap=initMap;
+initMap=function(){const result=originalInitMap.apply(this,arguments);syncRuntimeGlobals();return result;};
+const originalUpdateGpsInfo=updateGpsInfo;
+updateGpsInfo=function(){const result=originalUpdateGpsInfo.apply(this,arguments);syncRuntimeGlobals();return result;};
+const originalStartGpsWatch=startGpsWatch;
+startGpsWatch=function(){
+  if(gpsWatchId!==null)return;
+  const result=originalStartGpsWatch.apply(this,arguments);
+  syncRuntimeGlobals();
+  return result;
+};
+const originalStopGpsWatch=stopGpsWatch;
+stopGpsWatch=function(){
+  const result=originalStopGpsWatch.apply(this,arguments);
+  syncRuntimeGlobals();
+  return result;
+};
+if(startGps)startGps.onclick=startGpsWatch;
+if(stopGps)stopGps.onclick=stopGpsWatch;
+const originalResetToolAction=resetToolAction;
+resetToolAction=function(){
+  const nativeConfirm=window.confirm;
+  if(!nativeConfirm('Alle lokalen Daten löschen und Beispieldaten laden?'))return;
+  try{
+    for(let i=localStorage.length-1;i>=0;i--){
+      const key=localStorage.key(i);
+      if(key&&key.indexOf('regatta')===0)localStorage.removeItem(key);
+    }
+    window.confirm=()=>true;
+    return originalResetToolAction.apply(this,arguments);
+  }finally{window.confirm=nativeConfirm;}
+};
+if(resetToolBtn)resetToolBtn.onclick=resetToolAction;
+syncRuntimeGlobals();
+setInterval(syncRuntimeGlobals,250);
 })();
 </script>
 </body></html>
