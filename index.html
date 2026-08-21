@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="RegattaPlaner">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon.svg">
-<title>Regatta-Routenplaner 24h - v30.0.4</title>
+<title>Regatta-Routenplaner 24h - v30.0.20</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -33,10 +33,14 @@
 /* regatta-v29-1-4 finish and locked plan */
 #planTable tbody tr.finish-route-v2914 td{background:#fff3cd!important;color:#7c2d12!important;font-weight:900!important;border-top:3px solid #f59e0b!important;border-bottom:3px solid #f59e0b!important}#planTable tbody tr.finish-route-v2914 td:first-child{border-left:5px solid #d97706!important}#planTable tbody tr.after-finish-v2914{display:none!important}.finish-plan-v2914{display:none;margin:0 0 12px;padding:15px;border:2px solid #d97706;border-radius:12px;background:#fff3cd;color:#7c2d12;font-weight:800}.finish-plan-v2914.show{display:block!important}.finish-plan-v2914 button{display:inline-block!important;margin-top:10px!important;padding:11px 16px!important;border:2px solid #14532d!important;border-radius:9px!important;background:#166534!important;color:#fff!important;font-weight:900!important;box-shadow:0 2px 8px rgba(20,83,45,.25)!important}.plan-locked-v2914 #planTable input,.plan-locked-v2914 #planTable select,.plan-locked-v2914 #regatta input,.plan-locked-v2914 #regatta select,.plan-locked-v2914 #regatta button,.plan-locked-v2914 #plan button:not(.archive-control-v2914),.plan-locked-v2914 #plan input,.plan-locked-v2914 #plan select{pointer-events:none!important;opacity:.68!important}.plan-locked-banner-v2914{padding:12px;margin-bottom:10px;border-radius:10px;background:#14532d;color:#fff;font-weight:900}.plan-locked-v2914 #finishPlanV2914{display:none!important}#routeArchiveV2913a{display:block!important}.plan-locked-v2914 #routeArchiveV2913a,.plan-locked-v2914 #routeArchiveV2913a *{pointer-events:auto!important;opacity:1!important}
 </style>
-<script>document.addEventListener('DOMContentLoaded',()=>{const startInput=document.getElementById('startTime');if(startInput){startInput.type='text';startInput.inputMode='numeric';startInput.autocomplete='off';startInput.placeholder='HH:MM'}})</script>
+<style id="start-time-menu-style">.start-time-menu{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;width:max-content}.start-time-menu select{width:4.25rem!important;min-width:4.25rem!important;padding:7px 5px!important;text-align:center}.start-time-menu span{font-weight:900}</style>
+<style id="regatta-night-top-style">.regatta-night-top{display:flex;justify-content:flex-end;margin:-4px 14px 4px}.regatta-night-top button{padding:5px 9px;font-size:.82rem}</style>
+<link rel="stylesheet" href="layout.css?v=30.0.20">
+<script id="regatta-ui-bootstrap">window.regattaOnReady=callback=>{if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',callback,{once:true});else callback()};regattaOnReady(()=>{const regatta=document.getElementById('regatta'),night=document.getElementById('nightToggle');if(regatta&&night&&!document.getElementById('regattaNightTop')){const bar=document.createElement('div');bar.id='regattaNightTop';bar.className='regatta-night-top';bar.appendChild(night);regatta.insertBefore(bar,regatta.firstElementChild)}const startInput=document.getElementById('startTime');if(!startInput)return;const wrapper=document.createElement('div');wrapper.className='start-time-menu';const hour=document.createElement('select');hour.id='startHour';hour.className='user';hour.setAttribute('aria-label','Stunde');const separator=document.createElement('span');separator.textContent=':';const minute=document.createElement('select');minute.id='startMinute';minute.className='user';minute.setAttribute('aria-label','Minute');for(let value=0;value<24;value++)hour.add(new Option(String(value).padStart(2,'0'),String(value).padStart(2,'0')));for(let value=0;value<60;value++)minute.add(new Option(String(value).padStart(2,'0'),String(value).padStart(2,'0')));wrapper.append(hour,separator,minute);startInput.type='hidden';startInput.parentElement.insertBefore(wrapper,startInput);const sync=()=>{const parts=String(startInput.value||'14:00').split(':');hour.value=parts[0].padStart(2,'0');minute.value=(parts[1]||'00').padStart(2,'0')};const update=()=>{startInput.value=hour.value+':'+minute.value;startInput.dispatchEvent(new Event('input',{bubbles:true}))};hour.onchange=update;minute.onchange=update;window.syncStartTimeMenus=sync;sync();setTimeout(sync,0);setTimeout(sync,100)})</script>
+<script id="regatta-field-labels">regattaOnReady(()=>{const labels={sn1:'START | Startnummer 1',sn2:'START | Startnummer 2',sn3:'ZIEL | Startnummer 1',sn4:'ZIEL | Startnummer 2'};Object.entries(labels).forEach(([id,text])=>{const field=document.getElementById(id),label=field&&field.parentElement&&field.parentElement.querySelector('label');if(label)label.textContent=text})})</script>
 </head>
 <body>
-<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.0.4</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.0.4: Startzeiten werden verbindlich im 24-Stunden-Format angezeigt.</p></header>
+<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.0.7</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.0.7: Start- und Zielfelder übersichtlich in Zweierzeilen angeordnet.</p></header>
 <div class="nav" aria-label="Ansichten"><button class="active" data-view="regatta"><span>🏁</span>Regatta</button><button data-view="mapview"><span>🗺</span>Karte</button><button data-view="plan"><span>📋</span>Plan</button><button data-view="overview"><span>📊</span>Info</button><button data-view="logbook" id="logNavBtn"><span>🧭</span>Log</button><button data-view="import"><span>⇅</span>Import</button><button data-view="settings"><span>⚙</span>Setup</button><button data-view="manual"><span>?</span>Hilfe</button></div>
 <div id="sampleBanner" class="sample">⚠ Beispieldaten aktiv: Eigene Rakken- und Bojen-Dateien wurden noch nicht importiert oder das Tool wurde zurückgesetzt.</div>
 <section id="regatta" class="view active">
@@ -427,7 +431,7 @@ if ('serviceWorker' in navigator) {
 <script id="regatta-v28-1-1-clean-runtime">
 (function(){
 'use strict';
-const VERSION='v30.0.4';
+const VERSION='v30.0.20';
 function byId(id){return document.getElementById(id)}
 function once(){
  document.documentElement.style.setProperty('--nav-count',document.body.classList.contains('logbook-disabled')?'6':'7');
@@ -463,7 +467,7 @@ function installGpsBridge(){setInterval(updateGpsLine,1000);updateGpsLine();}
 let labelLayer=null;
 function renderNames(){if(typeof L==='undefined'||!window.mapObj||!Array.isArray(window.buoys))return;const on=!byId('buoyNamesToggle')||byId('buoyNamesToggle').checked;if(labelLayer){labelLayer.clearLayers();window.mapObj.removeLayer(labelLayer);labelLayer=null;}if(!on)return;labelLayer=L.layerGroup().addTo(window.mapObj);window.buoys.filter(b=>Number.isFinite(b.lat)&&Number.isFinite(b.lon)).forEach(b=>L.marker([b.lat,b.lon],{opacity:0,interactive:false}).bindTooltip(String(b.name),{permanent:true,direction:'top',className:'buoy-name-label',offset:[0,-4]}).addTo(labelLayer));}
 function fillManual(){const manual=byId('manual');if(!manual)return;manual.innerHTML='<div class="card manual-clean"><h2>Handbuch v29.1.4</h2><h3>1. Start</h3><p>Startzeit, Startboje sowie Start- und Zielnummern eintragen. Der Startbereich kann anschließend eingeklappt werden.</p><h3>2. Route planen</h3><p>Eine zulässige nächste Boje auswählen. SOG wird bei aktivem GPS oder aktiver Simulation automatisch übernommen. Danach den Schlag übernehmen.</p><h3>3. FINISH</h3><p>FINISH ist ausschließlich von WV19 erreichbar und kann nur einmal verwendet werden.</p><h3>4. Karte und GPS</h3><p>Die kompakte Zeile zeigt GPS-Status, SOG und COG. Route, GPS-Track und Bojen-Namen lassen sich separat schalten. Der Vollbildknopf wechselt zwischen Ein und Aus.</p><h3>5. Logbuch</h3><p>Das Logbuch ist standardmäßig aus. Beim Aktivieren erscheint eine Sicherheitsabfrage. Die GPS-Navigation funktioniert auch ohne Logbuch.</p><h3>6. Import</h3><p>Excel- und JSON-Import befinden sich unter Setup im Bereich „Import und Datensicherung“.</p><h3>7. Navigation</h3><p>Die untere Leiste ist auf Mobilgeräten bildschirmbreit und auf Desktop-PCs zentriert. Alle Ansichten bleiben erreichbar.</p></div>';}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',once);else once();
+regattaOnReady(once);
 })();
 </script>
 
@@ -523,7 +527,7 @@ function ensureBuoyToggle(){
  l.querySelector('input').addEventListener('change',()=>document.dispatchEvent(new CustomEvent('cleanBuoyNamesChanged')));
 }
 function boot(){restructureSettings();ensureBuoyToggle();allDetailsClosed();fullButton();highlightInfo();setInterval(autoGpsSpeed,1200);setInterval(highlightInfo,1500);document.addEventListener('fullscreenchange',fullButton)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+regattaOnReady(boot);
 })();
 </script>
 
@@ -548,7 +552,7 @@ function ensureToggle(){
  });
  setTimeout(function(){document.dispatchEvent(new CustomEvent('regattaBuoyNamesToggle',{detail:{visible:toggle.checked}}));},300);
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureToggle);else ensureToggle();
+regattaOnReady(ensureToggle);
 })();
 </script>
 
@@ -863,7 +867,8 @@ function byId(id){return document.getElementById(id)}function state(){try{return
 function archiveData(){return{version:'v29.1.4',savedAt:new Date().toISOString(),name:'Regatta '+new Date().toLocaleString('de-DE'),payload:typeof payload==='function'?payload():null,plan:used().map(function(x){return{row:x.row,von:x.von,nach:x.nach,speed:(x.tr.querySelector('.speed')||{}).value||'',eta:(x.tr.querySelector('.eta input')||{}).value||x.etaTxt||'',status:x.status||''}})}}
 function list(){try{return JSON.parse(localStorage.getItem(ARCHIVE)||'[]')||[]}catch(e){return[]}}function saveList(v){localStorage.setItem(ARCHIVE,JSON.stringify(v))}
 function panel(){var plan=byId('plan');if(!plan)return null;var p=byId('finishPlanActionV2913');if(!p){p=document.createElement('div');p.id='finishPlanActionV2913';p.className='finish-plan-action';p.innerHTML='<b>FINISH ist geplant.</b><br>Der Plan kann noch manuell korrigiert und anschließend gespeichert und fixiert werden.<br><button id="savePlanV2913" type="button">Plan speichern</button>';plan.insertBefore(p,plan.firstChild);byId('savePlanV2913').onclick=savePlan}return p}
-function savePlan(){if(!finishSelected())return;if(!confirm('Plan wirklich speichern und fixieren? Danach sind Änderungen an diesem Plan nicht mehr möglich.'))return;var a=list(),data=archiveData();a.unshift(data);saveList(a);localStorage.setItem(LOCK,'true');downloadJson(data,'regatta-plan-'+Date.now()+'.json');applyLock();renderArchives()}
+function readablePlanFilename(){var now=new Date();var pad=function(value){return String(value).padStart(2,'0')};return 'regatta-plan-'+now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'_'+pad(now.getHours())+'-'+pad(now.getMinutes())+'.json'}
+function savePlan(){if(!finishSelected())return;if(!confirm('Plan wirklich speichern und fixieren? Danach sind Änderungen an diesem Plan nicht mehr möglich.'))return;var a=list(),data=archiveData();a.unshift(data);saveList(a);localStorage.setItem(LOCK,'true');downloadJson(data,readablePlanFilename());applyLock();renderArchives()}
 function downloadJson(data,name){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1200)}
 function applyLock(){document.body.classList.toggle('plan-locked',localStorage.getItem(LOCK)==='true');var plan=byId('plan');if(plan&&localStorage.getItem(LOCK)==='true'&&!byId('planLockedBanner')){var b=document.createElement('div');b.id='planLockedBanner';b.className='plan-locked-banner';b.textContent='Plan gespeichert und fixiert.';plan.insertBefore(b,plan.firstChild)}}
 function update(){var p=panel();if(p)p.classList.toggle('show',finishSelected()&&localStorage.getItem(LOCK)!=='true');var ar=byId('routeArchiveV2913');if(ar)ar.hidden=hasCurrentPlan()}
@@ -932,7 +937,7 @@ function finishPlanned(){return finishIndex()>=0}
 function decoratePlan(){var index=finishIndex();rows().forEach(function(tr,row){tr.classList.toggle('finish-route-v2914',row===index);tr.classList.toggle('after-finish-v2914',index>=0&&row>index)});var box=byId('finishPlanV2914');if(box)box.classList.toggle('show',index>=0&&localStorage.getItem(LOCK)!=='true');var archive=byId('routeArchiveV2913a');if(archive){archive.hidden=false;archive.style.display='block'}}
 function ensureSavePanel(){var plan=byId('plan');if(!plan)return;var old=byId('finishPlanActionV2913');if(old)old.remove();var box=byId('finishPlanV2914');if(!box){box=document.createElement('div');box.id='finishPlanV2914';box.className='finish-plan-v2914';box.innerHTML='<strong>🏁 FINISH ist der letzte geplante Schlag.</strong><br>Der Plan kann jetzt geprüft und anschließend endgültig gespeichert werden.<br><button id="savePlanV2914" type="button">Plan speichern und fixieren</button>';plan.insertBefore(box,plan.firstChild);byId('savePlanV2914').onclick=saveAndLock}}
 function snapshot(){return{version:'v29.1.4',savedAt:new Date().toISOString(),name:'Regatta '+new Date().toLocaleString('de-DE'),payload:typeof payload==='function'?payload():null}}
-function downloadJson(data){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='regatta-plan-'+Date.now()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1200)}
+function downloadJson(data){var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download=readablePlanFilename();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1200)}
 function saveAndLock(){if(!finishPlanned())return;if(!confirm('Plan wirklich speichern und fixieren? Danach sind Änderungen am aktuellen Plan nicht mehr möglich.'))return;var data=snapshot(),list=[];try{list=JSON.parse(localStorage.getItem(ARCHIVE)||'[]')||[]}catch(e){}list.unshift(data);localStorage.setItem(ARCHIVE,JSON.stringify(list));localStorage.setItem(LOCK,'true');localStorage.setItem('regattaV2913PlanLocked','true');downloadJson(data);applyLock();decoratePlan()}
 function applyLock(){var locked=localStorage.getItem(LOCK)==='true'||localStorage.getItem('regattaV2913PlanLocked')==='true';document.body.classList.toggle('plan-locked-v2914',locked);var plan=byId('plan'),banner=byId('planLockedBannerV2914');if(locked&&plan&&!banner){banner=document.createElement('div');banner.id='planLockedBannerV2914';banner.className='plan-locked-banner-v2914';banner.textContent='Plan gespeichert und fixiert. Änderungen sind nicht mehr möglich.';plan.insertBefore(banner,plan.firstChild)}if(!locked&&banner)banner.remove()}
 function guardAfterFinish(){var add=byId('addLeg');if(add)add.addEventListener('click',function(event){if(finishPlanned()){event.preventDefault();event.stopImmediatePropagation();alert('FINISH ist bereits geplant. Weitere Schläge sind nicht möglich.')}},true)}
