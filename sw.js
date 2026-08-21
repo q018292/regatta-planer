@@ -1,5 +1,5 @@
-const CACHE_NAME='regatta-planer-v30-0-20';
-const APP_SHELL=['./','./index.html','./manifest.webmanifest','./sw.js','./icons/icon.svg'];
+const CACHE_NAME='regatta-planer-v30-0-21';
+const APP_SHELL=['./','./index.html','./layout.css','./manifest.webmanifest','./sw.js','./icons/icon.svg'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));
