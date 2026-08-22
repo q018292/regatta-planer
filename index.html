@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="RegattaPlaner">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon.svg">
-<title>Regatta-Routenplaner 24h - v30.0.33</title>
+<title>Regatta-Routenplaner 24h - v30.0.34</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -40,7 +40,7 @@
 <script id="regatta-field-labels">regattaOnReady(()=>{const labels={sn1:'START | Startnummer 1',sn2:'START | Startnummer 2',sn3:'ZIEL | Startnummer 1',sn4:'ZIEL | Startnummer 2'};Object.entries(labels).forEach(([id,text])=>{const field=document.getElementById(id),label=field&&field.parentElement&&field.parentElement.querySelector('label');if(label)label.textContent=text})})</script>
 </head>
 <body>
-<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.0.33</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.0.33: Versionsanzeige und ETA-Datenpfad sind synchronisiert.</p></header>
+<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.0.34</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.0.34: ETA-Auswahl, Kartenrouten, Löschfunktion und Segelboot-Status.</p></header>
 <div class="nav" aria-label="Ansichten"><button class="active" data-view="regatta"><span>🏁</span>Regatta</button><button data-view="mapview"><span>🗺</span>Karte</button><button data-view="plan"><span>📋</span>Plan</button><button data-view="overview"><span>📊</span>Info</button><button data-view="logbook" id="logNavBtn"><span>🧭</span>Log</button><button data-view="import"><span>⇅</span>Import</button><button data-view="settings"><span>⚙</span>Setup</button><button data-view="manual"><span>?</span>Hilfe</button></div>
 <div id="sampleBanner" class="sample">⚠ Beispieldaten aktiv: Eigene Rakken- und Bojen-Dateien wurden noch nicht importiert oder das Tool wurde zurückgesetzt.</div>
 <section id="regatta" class="view active">
@@ -432,13 +432,13 @@ if ('serviceWorker' in navigator) {
 <script id="regatta-v28-1-1-clean-runtime">
 (function(){
 'use strict';
-const VERSION='v30.0.33';const APP_VERSION=VERSION;
+const VERSION='v30.0.34';const APP_VERSION=VERSION;
 function byId(id){return document.getElementById(id)}
 function once(){
  document.documentElement.style.setProperty('--nav-count',document.body.classList.contains('logbook-disabled')?'6':'7');
  const badge=document.querySelector('.versionBadge');if(badge)badge.textContent=VERSION;
  const updateButton=byId('updateAppBtn');if(updateButton&&!byId('appVersion')){const version=document.createElement('p');version.id='appVersion';version.className='settings-note';version.textContent='Programmversion: '+VERSION;updateButton.parentElement.insertAdjacentElement('afterend',version)}
- const news=byId('releaseNews');if(news)news.textContent='v30.0.32: ETA-Speicher und Anzeige bleiben nach Änderungen synchron.';
+ const news=byId('releaseNews');if(news)news.textContent='v30.0.34: ETA-Auswahl, Kartenrouten, Löschfunktion und Segelboot-Status.';
  const importNav=document.querySelector('.nav button[data-view="import"]');if(importNav)importNav.remove();
  const importView=byId('import'),settings=byId('settings');
  if(importView&&settings&&!byId('cleanImportDetails')){const d=document.createElement('details');d.id='cleanImportDetails';d.className='card clean-settings-import';d.innerHTML='<summary>⇅ Import und Datensicherung</summary>';while(importView.firstChild)d.appendChild(importView.firstChild);settings.appendChild(d);importView.remove();}
@@ -1002,7 +1002,7 @@ setInterval(syncRuntimeGlobals,250);
 <script id="regatta-v30-0-32-runtime">
 (function(){
 'use strict';
-const VERSION='v30.0.33';
+const VERSION='v30.0.34';
 const LOCK_KEYS=['regattaV2913PlanLocked','regattaV2914PlanLocked'];
 const UPDATE_SESSION='regattaV2903UpdateChecked';
 const ETA_KEY='regattaV2905eEta';
@@ -1031,6 +1031,30 @@ function bindLockLifecycle(){if(document.body.dataset.v30025LockBound)return;doc
 async function unifiedAppUpdate(){if(window.__regattaUpdateRunning)return false;window.__regattaUpdateRunning=true;try{if('serviceWorker' in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.map(function(registration){return registration.update().catch(function(){return null;});}));}if(window.caches&&caches.keys){const keys=await caches.keys();await Promise.all(keys.map(function(key){return caches.delete(key);}));}sessionStorage.setItem('regattaUpdateLastSuccess',new Date().toISOString());sessionStorage.setItem(UPDATE_SESSION,'done');location.replace(location.origin+location.pathname+'?v='+encodeURIComponent(VERSION)+'&t='+Date.now());return true;}catch(error){console.error('App-Aktualisierung fehlgeschlagen:',error);sessionStorage.removeItem(UPDATE_SESSION);alert('App-Aktualisierung fehlgeschlagen. Bitte Netzwerkverbindung prüfen und erneut versuchen.');return false;}finally{window.__regattaUpdateRunning=false;}}
 function bindUpdatePath(){window.regattaRunAppUpdate=unifiedAppUpdate;window.regattaForceAppUpdate=unifiedAppUpdate;const button=byId('updateAppBtn');if(button)button.onclick=unifiedAppUpdate;}
 function boot(){bindUpdatePath();bindEtaSpeedSync();bindLockLifecycle();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+<style id="regatta-v30-0-34-style">
+#planTable tbody tr:first-child td{border-top:3px solid #2563eb!important;background:#eff6ff!important}
+#planTable tbody tr.finish-row-v3034 td{border-top:3px solid #f59e0b!important;border-bottom:3px solid #f59e0b!important;background:#fff7d6!important;color:#7c2d12!important;font-weight:900!important}
+.eta-v2905e{display:none!important}.eta-selects-v3034{display:inline-flex;align-items:center;gap:3px}.eta-selects-v3034 select{width:3.7rem!important;min-width:3.7rem!important;padding:4px!important;text-align:center}.eta-selects-v3034 span{font-weight:900}.plan-delete-v3034{padding:5px 8px!important;background:#b91c1c!important;color:#fff!important;border:0!important;border-radius:6px!important;cursor:pointer}.plan-sailboat-v3034{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #93c5fd;border-radius:8px;background:#eff6ff;color:#1e3a8a;font-weight:800}.plan-sailboat-v3034 .boat{font-size:1.7rem;line-height:1}.route-overlay-line-v3034{pointer-events:none}
+body.night #planTable tbody tr:first-child td{background:#172554!important}body.night #planTable tbody tr.finish-row-v3034 td{background:#422006!important;color:#fed7aa!important}.night .plan-sailboat-v3034{background:#172554;color:#bfdbfe}
+</style>
+<script id="regatta-v30-0-34-runtime">
+(function(){'use strict';
+const V='v30.0.34';let routeLayer=null,booted=false;
+const id=x=>document.getElementById(x), rows=()=>[...document.querySelectorAll('#planTable tbody tr')];
+function version(){document.title='Regatta-Routenplaner 24h - '+V;const b=id('appHeader')?.querySelector('.versionBadge');if(b)b.textContent=V;const n=id('releaseNews');if(n)n.textContent='Neu in '+V+': ETA-Auswahl, Kartenrouten, Löschfunktion und Segelboot-Status.';const p=id('appVersion');if(p)p.textContent='Programmversion: '+V;}
+function options(select,start,end){select.innerHTML='';for(let n=start;n<=end;n++)select.add(new Option(String(n).padStart(2,'0'),String(n).padStart(2,'0')))}
+function etaMenus(){rows().forEach((tr,row)=>{const cell=tr.querySelector('.eta'),input=cell?.querySelector('.eta-v2905e');if(!cell||!input||cell.querySelector('.eta-selects-v3034'))return;const wrap=document.createElement('span');wrap.className='eta-selects-v3034';const h=document.createElement('select'),m=document.createElement('select');h.setAttribute('aria-label','ETA Stunde');m.setAttribute('aria-label','ETA Minute');options(h,0,23);options(m,0,59);const sep=document.createElement('span');sep.textContent=':';const sync=()=>{const p=String(input.value||'00:00').split(':');h.value=String(p[0]).padStart(2,'0');m.value=String(p[1]||'00').padStart(2,'0')};const update=()=>{input.value=h.value+':'+m.value;input.dispatchEvent(new Event('change',{bubbles:true}));setTimeout(etaMenus,80)};h.onchange=update;m.onchange=update;wrap.append(h,sep,m);cell.append(wrap);sync()})}
+function removePlanRow(row){const all=rows();for(let i=row;i<all.length-1;i++){all[i].querySelector('.nach').value=all[i+1].querySelector('.nach').value;all[i].querySelector('.speed').value=all[i+1].querySelector('.speed').value}const last=all.at(-1);if(last){last.querySelector('.nach').value='';last.querySelector('.speed').value=''}try{const key='regattaV2905eEta',data=JSON.parse(localStorage.getItem(key)||'{}');Object.keys(data).forEach(k=>{if(Number(k)>=row)delete data[k]});localStorage.setItem(key,JSON.stringify(data))}catch(e){}if(typeof render==='function')render();if(typeof persist==='function')persist();setTimeout(refresh,100)}
+function deleteButtons(){rows().forEach((tr,row)=>{const nach=tr.querySelector('.nach');let cell=tr.querySelector('.delete-cell-v3034');if(!cell){cell=document.createElement('td');cell.className='delete-cell-v3034';tr.append(cell)}cell.innerHTML='';if(nach?.value){const b=document.createElement('button');b.type='button';b.className='plan-delete-v3034';b.textContent='Löschen';b.title='Schlag löschen';b.onclick=()=>removePlanRow(row);cell.append(b)}})}
+function markRows(){rows().forEach(tr=>tr.classList.toggle('finish-row-v3034',tr.querySelector('.nach')?.value==='FINISH'))}
+function planBoat(){const plan=id('plan');if(!plan)return;let box=id('planSailboatV3034');if(!box){box=document.createElement('div');box.id='planSailboatV3034';box.className='plan-sailboat-v3034';const tableCard=plan.querySelector('#planTable')?.closest('.card');if(tableCard)plan.insertBefore(box,tableCard)}const gps=typeof lastGps!=='undefined'&&lastGps?.coords;const used=rows().filter(tr=>tr.querySelector('.nach')?.value);const last=used.at(-1)?.querySelector('.nach')?.value||'Noch keine Boje';box.innerHTML='<span class="boat">⛵</span><span>'+(gps?'Aktuelle GPS-Position':'Letzte Boje')+': '+(gps?Number(gps.latitude).toFixed(5)+' / '+Number(gps.longitude).toFixed(5):last)+'</span>'}
+function mapRoutes(){if(!mapObj||typeof L==='undefined')return;if(!routeLayer)routeLayer=L.layerGroup().addTo(mapObj);routeLayer.clearLayers();const show=id('routeOverlayToggle')?.checked!==false;if(!show){mapObj.removeLayer(routeLayer);return}routeLayer.addTo(mapObj);(routes||[]).forEach(r=>{const a=(buoys||[]).find(b=>b.name===r.start),b=(buoys||[]).find(x=>x.name===r.end);if(a&&b&&Number.isFinite(a.lat)&&Number.isFinite(b.lat))L.polyline([[a.lat,a.lon],[b.lat,b.lon]],{color:'#64748b',weight:1,opacity:.55,className:'route-overlay-line-v3034'}).bindTooltip(r.id).addTo(routeLayer)})}
+function uniqueMapMarkers(){if(!mapObj)return;mapObj.eachLayer(layer=>{if(layer&&typeof layer.eachLayer==='function'&&!layer._url)layer.eachLayer(child=>{if(child?.options?.opacity===0)layer.removeLayer(child)})})}
+function refresh(){version();etaMenus();deleteButtons();markRows();planBoat();mapRoutes();uniqueMapMarkers()}
+function boot(){if(booted)return;booted=true;refresh();id('routeOverlayToggle')?.addEventListener('change',mapRoutes);setInterval(refresh,1200)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
