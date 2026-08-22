@@ -432,13 +432,13 @@ if ('serviceWorker' in navigator) {
 <script id="regatta-v28-1-1-clean-runtime">
 (function(){
 'use strict';
-const VERSION='v30.0.34';const APP_VERSION=VERSION;
+const VERSION='v30.0.51';const APP_VERSION=VERSION;
 function byId(id){return document.getElementById(id)}
 function once(){
  document.documentElement.style.setProperty('--nav-count',document.body.classList.contains('logbook-disabled')?'6':'7');
  const badge=document.querySelector('.versionBadge');if(badge)badge.textContent=VERSION;
  const updateButton=byId('updateAppBtn');if(updateButton&&!byId('appVersion')){const version=document.createElement('p');version.id='appVersion';version.className='settings-note';version.textContent='Programmversion: '+VERSION;updateButton.parentElement.insertAdjacentElement('afterend',version)}
- const news=byId('releaseNews');if(news)news.textContent='v30.0.34: ETA-Auswahl, Kartenrouten, Löschfunktion und Segelboot-Status.';
+ const news=byId('releaseNews');if(news)news.textContent='Neu in v30.0.51: Import-Reparatur ohne fehlerhafte DOM-Anker.';
  const importNav=document.querySelector('.nav button[data-view="import"]');if(importNav)importNav.remove();
  const importView=byId('import'),settings=byId('settings');
  if(importView&&settings&&!byId('cleanImportDetails')){const d=document.createElement('details');d.id='cleanImportDetails';d.className='card clean-settings-import';d.innerHTML='<summary>⇅ Import und Datensicherung</summary>';while(importView.firstChild)d.appendChild(importView.firstChild);settings.appendChild(d);importView.remove();}
