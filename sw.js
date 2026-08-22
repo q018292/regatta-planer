@@ -1,4 +1,4 @@
-const CACHE_NAME='regatta-planer-v30-0-25';
+const CACHE_NAME='regatta-planer-v30-0-26';
 const APP_SHELL=['./','./index.html','./layout.css','./manifest.webmanifest','./sw.js','./icons/icon.svg'];
 
 self.addEventListener('install',event=>{
