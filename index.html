@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="RegattaPlaner">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon.svg">
-<title>Regatta-Routenplaner 24h - v30.0.59</title>
+<title>Regatta-Routenplaner 24h - v30.1.0</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -41,7 +41,7 @@
 <script id="regatta-v30-0-52-dom-guard">(function(){'use strict';if(window.__regattaInsertBeforeGuard)return;window.__regattaInsertBeforeGuard=true;const nativeInsertBefore=Node.prototype.insertBefore;Node.prototype.insertBefore=function(newNode,referenceNode){try{return nativeInsertBefore.call(this,newNode,referenceNode)}catch(error){if(error&&error.name==='NotFoundError'){return this.appendChild(newNode)}throw error}};})();</script>
 </head>
 <body>
-<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.0.59</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.0.59: App-Import und Zurücksetzen übersichtlicher angeordnet.</p></header>
+<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.1.0</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.1.0: Versionsverwaltung für Anforderungen und Fixes vereinheitlicht.</p></header>
 <div class="nav" aria-label="Ansichten"><button class="active" data-view="regatta"><span>🏁</span>Regatta</button><button data-view="mapview"><span>🗺</span>Karte</button><button data-view="plan"><span>📋</span>Plan</button><button data-view="overview"><span>🛟</span>Info</button><button data-view="logbook" id="logNavBtn"><span>🧭</span>Log</button><button data-view="import"><span>⇅</span>Import</button><button data-view="settings"><span>⚙</span>Setup</button><button data-view="manual"><span>?</span>Hilfe</button></div>
 <div id="sampleBanner" class="sample">⚠ Beispieldaten aktiv: Eigene Rakken- und Bojen-Dateien wurden noch nicht importiert oder das Tool wurde zurückgesetzt.</div>
 <section id="regatta" class="view active">
@@ -433,7 +433,7 @@ if ('serviceWorker' in navigator) {
 <script id="regatta-v28-1-1-clean-runtime">
 (function(){
 'use strict';
-const VERSION='v30.0.57';const APP_VERSION=VERSION;
+const VERSION='v30.1.0';const APP_VERSION=VERSION;
 function byId(id){return document.getElementById(id)}
 function once(){
  document.documentElement.style.setProperty('--nav-count',document.body.classList.contains('logbook-disabled')?'6':'7');
@@ -1122,4 +1122,6 @@ if(typeof regattaOnReady==='function')regattaOnReady(boot);else if(document.read
 <script id="regatta-v30-0-57-runtime">(function(){'use strict';function setCurrentVersion(){if(document.title!=='Regatta-Routenplaner 24h - v30.0.58')document.title='Regatta-Routenplaner 24h - v30.0.58';const badge=document.querySelector('.versionBadge');if(badge&&badge.textContent!=='v30.0.58')badge.textContent='v30.0.58';const news=document.getElementById('releaseNews');if(news&&news.textContent!=='Neu in v30.0.58: Untermenü-Texte aus den Menüreitern entfernt.')news.textContent='Neu in v30.0.58: Untermenü-Texte aus den Menüreitern entfernt.';const info=document.getElementById('appVersion');if(info&&info.textContent!=='Programmversion: v30.0.58')info.textContent='Programmversion: v30.0.58'}if(typeof regattaOnReady==='function')regattaOnReady(setCurrentVersion);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setCurrentVersion,{once:true});else setCurrentVersion();setInterval(setCurrentVersion,1200);new MutationObserver(function(){setCurrentVersion()}).observe(document.documentElement,{subtree:true,childList:true,characterData:true})})();</script>
 <script id="regatta-v30-0-58-runtime">(function(){'use strict';function removeSubmenuPreviewText(){document.querySelectorAll('.submenu-preview-v3055').forEach(function(node){node.remove()})}removeSubmenuPreviewText();new MutationObserver(removeSubmenuPreviewText).observe(document.documentElement,{subtree:true,childList:true})})();</script>
 <script id="regatta-v30-0-59-runtime">(function(){'use strict';function organizeAppImport(){const app=document.getElementById('settingsAppGroup'),body=app?.querySelector(':scope > .settings-clean-body'),imports=document.getElementById('cleanImportDetails'),reset=document.getElementById('resetTool');if(!body||!imports||!reset)return;if(reset.parentElement!==body)body.append(reset);const update=document.getElementById('appUpdateSubmenuV3045');if(update){update.style.borderBottom='0';update.style.marginBottom='0'}imports.style.borderTop='0';}if(typeof regattaOnReady==='function')regattaOnReady(organizeAppImport);else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',organizeAppImport,{once:true});else organizeAppImport();setInterval(organizeAppImport,1200)})();</script>
+<script id="regatta-v30-0-60-runtime">(function(){'use strict';function setCurrentVersion(){if(document.title!=='Regatta-Routenplaner 24h - v30.0.59')document.title='Regatta-Routenplaner 24h - v30.0.59';const badge=document.querySelector('.versionBadge');if(badge&&badge.textContent!=='v30.0.59')badge.textContent='v30.0.59';const info=document.getElementById('appVersion');if(info&&info.textContent!=='Programmversion: v30.0.59')info.textContent='Programmversion: v30.0.59'}setCurrentVersion();setInterval(setCurrentVersion,1200)})();</script>
+<script id="regatta-v30-0-60-runtime">(function(){'use strict';function setCurrentVersion(){if(document.title!=='Regatta-Routenplaner 24h - v30.1.0')document.title='Regatta-Routenplaner 24h - v30.1.0';const badge=document.querySelector('.versionBadge');if(badge&&badge.textContent!=='v30.1.0')badge.textContent='v30.1.0';const info=document.getElementById('appVersion');if(info&&info.textContent!=='Programmversion: v30.1.0')info.textContent='Programmversion: v30.1.0'}setCurrentVersion();setInterval(setCurrentVersion,1200)})();</script>
 </body></html>
