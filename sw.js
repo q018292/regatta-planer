@@ -1,4 +1,4 @@
-const CACHE_NAME='regatta-planer-v30-1-4';
+const CACHE_NAME='regatta-planer-v30-0-24';
 const APP_SHELL=['./','./index.html','./layout.css','./manifest.webmanifest','./sw.js','./icons/icon.svg'];
 
 self.addEventListener('install',event=>{
@@ -11,15 +11,6 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
-  const url=new URL(event.request.url);
-  const isAppEntry=event.request.mode==='navigate'||url.pathname.endsWith('/index.html')||url.pathname.endsWith('/sw.js');
-  if(isAppEntry){
-    event.respondWith(fetch(event.request,{cache:'no-store'}).then(response=>{
-      if(response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(event.request,copy));}
-      return response;
-    }).catch(()=>caches.match(event.request).then(cached=>cached||caches.match('./index.html'))));
-    return;
-  }
   event.respondWith(caches.match(event.request).then(cached=>{
     if(cached)return cached;
     return fetch(event.request).then(response=>{
