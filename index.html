@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="RegattaPlaner">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon.svg">
-<title>Regatta-Routenplaner 24h - v30.1.5</title>
+<title>Regatta-Routenplaner 24h - v30.1.6</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -42,7 +42,7 @@
 <style id="regatta-v30-1-5-readable-layout">body{padding-bottom:84px!important}.view{padding-bottom:104px!important}.nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:2000!important;display:grid!important;grid-template-columns:repeat(var(--nav-count,7),minmax(0,1fr))!important;gap:3px!important;width:100%!important;max-width:100%!important;margin:0!important;transform:none!important;padding:7px 5px calc(7px + env(safe-area-inset-bottom))!important;background:var(--card)!important;border-top:1px solid var(--border)!important;border-bottom:0!important;box-shadow:0 -4px 18px rgba(15,23,42,.12)!important}.nav button{font-size:.82rem!important;min-width:0!important;padding:6px 8px!important}.nav button span{font-size:1rem!important}@media(max-width:620px){.nav button{min-height:36px!important}.nav button span{font-size:1rem!important}}</style>
 </head>
 <body>
-<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.1.5</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.1.5: Aktualisierung lädt ohne doppelte Skriptdeklarationen neu.</p></header>
+<header id="appHeader"><div class="headerTop"><h1>Regatta-Routenplaner 24h <span class="versionBadge">v30.1.6</span></h1><button id="hideHeaderToday" type="button" title="Titelzeile heute nicht mehr anzeigen">Heute nicht mehr anzeigen</button></div><p id="releaseNews">Neu in v30.1.6: Script-Struktur und Anzeige bleiben beim Aktualisieren stabil.</p></header>
 <div class="nav" aria-label="Ansichten"><button class="active" data-view="regatta"><span>🏁</span>Regatta</button><button data-view="mapview"><span>🗺</span>Karte</button><button data-view="plan"><span>📋</span>Plan</button><button data-view="overview"><span>🛟</span>Info</button><button data-view="logbook" id="logNavBtn"><span>🧭</span>Log</button><button data-view="import"><span>⇅</span>Import</button><button data-view="settings"><span>⚙</span>Setup</button><button data-view="manual"><span>?</span>Hilfe</button></div>
 <div id="sampleBanner" class="sample">⚠ Beispieldaten aktiv: Eigene Rakken- und Bojen-Dateien wurden noch nicht importiert oder das Tool wurde zurückgesetzt.</div>
 <section id="regatta" class="view active">
@@ -425,14 +425,12 @@ async function toggleMapFullscreen(){const el=document.getElementById('mapview')
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('RegattaPlaner Service Worker aktiv - v30.0.52'))
+      .then(() => console.log('RegattaPlaner Service Worker aktiv - v30.1.5'))
       .catch(err => console.warn('Service Worker Registrierung fehlgeschlagen:', err));
   });
-     const news=byId('releaseNews');if(news)news.textContent='Neu in v30.1.5: Aktualisierung verwendet durchg�ngig die aktuelle Versionsnummer.';
 </script>
-    const VERSION='v30.1.5';
+<section id="manual" class="view"><div class="card"><h2>Handbuch</h2><p>Automatisch ergänzt.</p></div></section>
 <script id="regatta-v28-1-1-clean-runtime">
-    function archiveData(){return{version:'v30.1.5',savedAt:new Date().toISOString(),name:'Regatta '+new Date().toLocaleString('de-DE'),payload:typeof payload==='function'?payload():null,plan:used().map(function(x){return{row:x.row,von:x.von,nach:x.nach,speed:(x.tr.querySelector('.speed')||{}).value||'',eta:(x.tr.querySelector('.eta input')||{}).value||x.etaTxt||'',status:x.status||''}})}}
 'use strict';
 const VERSION='v30.1.5';const APP_VERSION=VERSION;
 function byId(id){return document.getElementById(id)}
@@ -691,8 +689,10 @@ function addAutoUpdate(){
  const box=$('autoUpdateEnabled');box.checked=localStorage.getItem(UPDATE_KEY)!=='off';box.addEventListener('change',()=>localStorage.setItem(UPDATE_KEY,box.checked?'on':'off'));
 }
 async function autoUpdate(){
+ return;
  if(localStorage.getItem(UPDATE_KEY)==='off'||sessionStorage.getItem(UPDATE_SESSION)==='done'||typeof regattaRunAppUpdate!=='function')return;
- try{const updated=await regattaRunAppUpdate();if(updated)sessionStorage.setItem(UPDATE_SESSION,'done');else sessionStorage.removeItem(UPDATE_SESSION)}catch(e){console.error('Automatische Aktualisierung nicht vollständig möglich:',e);sessionStorage.removeItem(UPDATE_SESSION)}
+ sessionStorage.setItem(UPDATE_SESSION,'done');
+ try{const updated=await regattaRunAppUpdate();if(!updated)sessionStorage.removeItem(UPDATE_SESSION)}catch(e){console.error('Automatische Aktualisierung nicht vollständig möglich:',e);sessionStorage.removeItem(UPDATE_SESSION)}
 }
 function hideSimulationGpsPoint(){
  const status=$('routeSimStatus');const running=status&&/läuft|erkannt/i.test(status.textContent);window.regattaRouteSimulationRunning=!!running;
@@ -1127,6 +1127,7 @@ if(typeof regattaOnReady==='function')regattaOnReady(boot);else if(document.read
 <script id="regatta-v30-1-1-runtime">(function(){'use strict';function setCurrentVersion(){if(document.title!=='Regatta-Routenplaner 24h - v30.1.2')document.title='Regatta-Routenplaner 24h - v30.1.2';const badge=document.querySelector('.versionBadge');if(badge&&badge.textContent!=='v30.1.2')badge.textContent='v30.1.2';const news=document.getElementById('releaseNews');if(news&&news.textContent!=='Neu in v30.1.2: Aktualisierung verwendet einen neuen Service-Worker-Pfad.')news.textContent='Neu in v30.1.2: Aktualisierung verwendet einen neuen Service-Worker-Pfad.';const info=document.getElementById('appVersion');if(info&&info.textContent!=='Programmversion: v30.1.2')info.textContent='Programmversion: v30.1.2'}setCurrentVersion();setInterval(setCurrentVersion,1200)})();</script>
 <script id="regatta-v30-0-60-runtime">(function(){'use strict';function setCurrentVersion(){if(document.title!=='Regatta-Routenplaner 24h - v30.1.0')document.title='Regatta-Routenplaner 24h - v30.1.0';const badge=document.querySelector('.versionBadge');if(badge&&badge.textContent!=='v30.1.0')badge.textContent='v30.1.0';const info=document.getElementById('appVersion');if(info&&info.textContent!=='Programmversion: v30.1.0')info.textContent='Programmversion: v30.1.0'}setCurrentVersion();setInterval(setCurrentVersion,1200)})();</script>
 <script id="regatta-v30-1-4-runtime">(function(){'use strict';const VERSION='v30.1.5';function setVersion(){document.title='Regatta-Routenplaner 24h - '+VERSION;const badge=document.querySelector('.versionBadge');if(badge)badge.textContent=VERSION;const info=document.getElementById('appVersion');if(info)info.textContent='Programmversion: '+VERSION}async function updateApp(){if(window.__regattaUpdateRunning)return;window.__regattaUpdateRunning=true;try{const stamp=Date.now(),response=await fetch('./index.html?update='+stamp,{cache:'no-store'});if(!response.ok)throw new Error('index.html konnte nicht geladen werden: HTTP '+response.status);const html=await response.text();if(!html.includes(VERSION))throw new Error('Die aktuelle App-Version '+VERSION+' wurde noch nicht ausgeliefert.');if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();await Promise.all(registrations.map(registration=>registration.unregister().catch(()=>false)))}if(window.caches)await Promise.all((await caches.keys()).map(key=>caches.delete(key)));location.replace(location.origin+location.pathname+'?v='+encodeURIComponent(VERSION)+'&t='+stamp)}catch(error){console.error('App-Aktualisierung fehlgeschlagen:',error);alert('App-Aktualisierung fehlgeschlagen: '+error.message)}finally{window.__regattaUpdateRunning=false}}setVersion();window.regattaRunAppUpdate=updateApp;window.regattaForceAppUpdate=updateApp;const button=document.getElementById('updateAppBtn');if(button)button.onclick=updateApp;setInterval(setVersion,1200)})();</script>
+<script id="regatta-v30-1-6-version-guard">(function(){'use strict';const version='v30.1.6';function apply(){document.title='Regatta-Routenplaner 24h - '+version;const badge=document.querySelector('.versionBadge');if(badge)badge.textContent=version;const info=document.getElementById('appVersion');if(info)info.textContent='Programmversion: '+version}apply();setInterval(apply,250)})();</script>
 </body></html>
 
 
