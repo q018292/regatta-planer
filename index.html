@@ -113,10 +113,12 @@ function loadSavedMapView(){try{return JSON.parse(localStorage.getItem(MAP_VIEW_
 function saveMapView(){if(!mapObj)return;try{const c=mapObj.getCenter();localStorage.setItem(MAP_VIEW_KEY,JSON.stringify({zoom:mapObj.getZoom(),lat:c.lat,lng:c.lng}))}catch(e){}}
 function updateZoomLabel(){if(!mapObj)return;const label=mapObj.getContainer().querySelector('.regatta-zoom-label');if(label)label.textContent=mapObj.getZoom()+'x'}
 function ensureZoomLabel(){const bar=mapObj.getContainer().querySelector('.leaflet-control-zoom');if(!bar)return;let label=bar.querySelector('.regatta-zoom-label');if(!label){label=document.createElement('div');label.className='regatta-zoom-label';bar.appendChild(label)}updateZoomLabel()}
+let mapViewRestored=false;
 function initMap(){
   if(typeof L==='undefined'){if(gpsStatus)gpsStatus.value='Kartenbibliothek nicht geladen';return}
   if(mapObj){setTimeout(()=>mapObj.invalidateSize(),100);return}
   const saved=loadSavedMapView();
+  mapViewRestored=!!saved;
   mapObj=L.map('map',{zoomDelta:.5,zoomSnap:.5}).setView(saved?[saved.lat,saved.lng]:[52.8,5.2],saved?saved.zoom:8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(mapObj);  
   L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenSeaMap contributors',opacity:1}).addTo(mapObj);
@@ -127,7 +129,7 @@ function initMap(){
 function renderBuoyMap(){
   if(!buoyLayer)return;buoyLayer.clearLayers();let bounds=[];
   buoys.filter(b=>Number.isFinite(b.lat)&&Number.isFinite(b.lon)).forEach(b=>{const color=buoyColor(b.type);const marker=L.circleMarker([b.lat,b.lon],{radius:b.type==='Startboei'?7:5,color,weight:2,fillColor:color,fillOpacity:.18}).bindPopup(`<b>${esc(b.name)}</b><br>${esc(b.type)}${b.description?'<br>'+esc(b.description):''}`);marker._cleanBuoyName=String(b.name);marker.addTo(buoyLayer);const nt=document.getElementById('buoyNamesToggle');if(!nt||nt.checked){marker.bindTooltip(marker._cleanBuoyName,{permanent:true,direction:'top',className:'buoy-name-label',offset:[0,-4]});marker.openTooltip();}bounds.push([b.lat,b.lon])});
-  if(bounds.length&&mapObj)mapObj.fitBounds(bounds,{padding:[20,20]});
+  if(bounds.length&&mapObj){if(mapViewRestored){mapViewRestored=false}else{mapObj.fitBounds(bounds,{padding:[20,20]})}}
 }
 
 document.addEventListener('regattaBuoyNamesToggle',function(e){
@@ -456,6 +458,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script id="regatta-v28-1-1-clean-runtime">
+(function(){
     function archiveData(){return{version:'v31.2.0',savedAt:new Date().toISOString(),name:'Regatta '+new Date().toLocaleString('de-DE'),payload:typeof payload==='function'?payload():null,plan:used().map(function(x){return{row:x.row,von:x.von,nach:x.nach,speed:(x.tr.querySelector('.speed')||{}).value||'',eta:(x.tr.querySelector('.eta input')||{}).value||x.etaTxt||'',status:x.status||''}})}}
 'use strict';
 const VERSION='v31.2.0';const APP_VERSION=VERSION;
